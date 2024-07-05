@@ -1,0 +1,28 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="KiraLis39" id="0000000001">
+        <sql>
+            create table parsed_document_row
+            (
+                uuid        uuid                    not null
+                    constraint parsed_document_pkey
+                        primary key,
+                doc_name    varchar(255)            not null,
+                parsed_date timestamp default now() not null
+            );
+            comment on column parsed_document_row.doc_name is 'Имя документа-источника данных';
+            alter table parsed_document_row owner to seeker;
+
+            create table row_data
+            (
+                parsed_row_uuid uuid not null
+                    constraint fkfshs2at8lryc06a7ua30p0nlh
+                        references parsed_document_row,
+                row_data        varchar(255)
+            );
+            alter table row_data owner to seeker;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

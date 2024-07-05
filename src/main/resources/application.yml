@@ -11,6 +11,7 @@ server:
   compression:
     enabled: true
 
+
 spring:
   main:
     allow-circular-references: false
@@ -35,6 +36,7 @@ spring:
       auto-commit: false
 
   liquibase:
+    enabled: true
     change-log: classpath:db/changelog/changelog.xml
     # drop-first: true
 
@@ -55,6 +57,10 @@ spring:
           # autocommit: true // не рекомендуется
           pool_size: 10
         dialect: org.hibernate.dialect.PostgreSQL10Dialect
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
 
 app:
   notifyUrl: ${NOTIFY_SERVICE_URL:https://none.none.dev/seeker/notification/send}
@@ -73,3 +79,6 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    elasticsearch:
+      enabled: true
