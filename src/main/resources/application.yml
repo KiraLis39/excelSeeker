@@ -57,10 +57,18 @@ spring:
           # autocommit: true // не рекомендуется
           pool_size: 10
         dialect: org.hibernate.dialect.PostgreSQL10Dialect
+
   data:
     elasticsearch:
       repositories:
         enabled: true
+
+  servlet:
+    multipart:
+      enabled: true
+      location: ${MULTIPART_LOCATION:./temp/}
+      max-file-size: ${MAX_MULTIPART_FILE_SIZE:50MB}
+      max-request-size: ${MAX_MULTIPART_REQUEST_SIZE:50MB}
 
 app:
   notifyUrl: ${NOTIFY_SERVICE_URL:https://none.none.dev/seeker/notification/send}
@@ -81,4 +89,4 @@ management:
         enabled: true
   health:
     elasticsearch:
-      enabled: true
+      enabled: false
