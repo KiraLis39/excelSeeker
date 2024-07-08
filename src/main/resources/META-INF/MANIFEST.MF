@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven 3.8.1
+Built-By: KiraLis39
+Build-Jdk: 21.0.3
+Name: ru/seeker/
+Sealed: true
+Main-Class: ru.seeker.EventsApp
+Class-Path: lib/ resources/
+Implementation-Title: ExcelSeeker
+Implementation-Version: 0.0.1
+Implementation-Vendor-Id: groupId
+Implementation-Vendor: KiraLis39

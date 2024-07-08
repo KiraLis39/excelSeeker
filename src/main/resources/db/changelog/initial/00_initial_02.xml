@@ -13,9 +13,12 @@
                 doc_name    varchar(255)            not null,
                 parsed_date timestamp default now() not null
             );
+
             comment
             on column parsed_document_row.doc_name is 'Имя документа-источника данных';
-            alter table parsed_document_row owner to seeker;
+
+            alter table parsed_document_row
+                owner to seeker;
 
             create table row_data
             (
@@ -24,7 +27,27 @@
                         references parsed_document_row,
                 row_data        varchar(255)
             );
-            alter table row_data owner to seeker;
+
+            alter table row_data
+                owner to seeker;
+
+            create table files_story
+            (
+                doc_name  varchar(255)            not null,
+                doc_size  bigint                  not null,
+                load_date timestamp default now() not null,
+                uuid      uuid                    not null
+                    constraint files_story_pk
+                        primary key,
+                constraint files_story_pk_2
+                    unique (doc_name, doc_size)
+            );
+
+            comment
+            on table files_story is 'Информация о загруженных ранее файлах';
+
+            alter table files_story
+                owner to seeker;
         </sql>
     </changeSet>
 </databaseChangeLog>

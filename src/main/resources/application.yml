@@ -72,6 +72,8 @@ spring:
 
 app:
   notifyUrl: ${NOTIFY_SERVICE_URL:https://none.none.dev/seeker/notification/send}
+  poiZipSecureMinInflateRatio: ${POI_MIN_INFLATE_RATIO:0.01}
+  poiZipSecureMaxFileCount: ${POI_MAX_FILE_COUNT:1500}
 
 springdoc:
   api-docs:
