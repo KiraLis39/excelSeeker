@@ -15,12 +15,12 @@ server:
 spring:
   main:
     allow-circular-references: false
-    lazy-initialization: false
+    lazy-initialization: false # для dev - false, для prod - true.
     allow-bean-definition-overriding: false
 
   application:
     name: ExcelSeekerService
-    version: 0.0.1
+    version: 0.1.1
 
   profiles:
     active: dev
@@ -38,11 +38,11 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/changelog.xml
-    # drop-first: true
+    drop-first: true # для dev - true, для prod - false.
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update # для dev - update, для prod - validate.
     open-in-view: false
     show-sql: false
     properties:
