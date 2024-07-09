@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.seeker.config.ApplicationProperties;
 import ru.seeker.config.Constant;
 import ru.seeker.dto.ParsedRowDTO;
 import ru.seeker.entity.FileStory;
@@ -23,10 +24,10 @@ import ru.seeker.repository.FilesStoryRepository;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,7 +37,9 @@ import java.util.stream.Collectors;
 public class ExcelService {
     private static final String WORD_DELIMITER = "=!";
     private static final String EMPTY_CELL_MOCK = " - ";
-    private final HttpService httpService;
+    private static final int MAX_ROWS_TO_SAVE_LIMIT = 10_000;
+    private final ApplicationProperties props;
+    //    private final HttpService httpService;
     private final ParsedRowService parsedRowService;
     private final FilesStoryRepository filesStoryRepository;
 
@@ -46,8 +49,7 @@ public class ExcelService {
             throw new GlobalServiceException(ErrorMessages.WRONG_DOCUMENT_TYPE, filename);
         }
 
-        Optional<FileStory> found = filesStoryRepository.findByDocNameAndDocSize(filename, file.getSize());
-        if (found.isPresent()) {
+        if (filesStoryRepository.findByDocNameAndDocSize(filename, file.getSize()).isPresent()) {
             throw new GlobalServiceException(ErrorMessages.WAS_LOADED_ALREADY);
         }
 
@@ -60,6 +62,7 @@ public class ExcelService {
             throw new GlobalServiceException(ErrorMessages.WRONG_DOCUMENT_TYPE, file.getOriginalFilename());
         }
 
+        log.info("Таблица {} была успешно распарсена и сохранена в БД.", file.getOriginalFilename());
         return ResponseEntity.ok().build();
     }
 
@@ -70,19 +73,16 @@ public class ExcelService {
                 InputStream is = new BufferedInputStream(file.getInputStream());
                 org.apache.poi.ss.usermodel.Workbook workbook = new XSSFWorkbook(is)
         ) {
-            int pages = workbook.getNumberOfSheets();
-            log.info("Загружаемая таблица {} имеет {} страниц.", file.getOriginalFilename(), pages);
+            log.info("Загружаемая таблица {} имеет {} страниц.", file.getOriginalFilename(), workbook.getNumberOfSheets());
 
             int rowsCount = 0;
             for (org.apache.poi.ss.usermodel.Sheet sheet : workbook) {
                 log.info("Читаем страницу {}...", sheet.getSheetName());
 
-                Map<Integer, ParsedRowDTO> rows = new HashMap<>();
+                final Map<Integer, ParsedRowDTO> rows = new HashMap<>(10_000);
                 int i = 0;
                 for (org.apache.poi.ss.usermodel.Row row : sheet) {
-                    rows.put(i, buildNewRowDto(file, sheet));
-
-                    StringBuilder sb = new StringBuilder();
+                    final StringBuilder sb = new StringBuilder();
                     for (org.apache.poi.ss.usermodel.Cell cell : row) {
                         String cellData = switch (cell.getCellType()) {
                             case STRING -> cell.getRichStringCellValue().getString();
@@ -109,21 +109,38 @@ public class ExcelService {
 
                     if (hasUsefulData(sb)) {
                         // добавляем в мапу очередную строку, заполненную ячейками:
-                        rows.get(i).setRowData(removeTails(sb.toString()));
+                        rows.put(i, buildNewRowDto(file, sheet, removeTails(sb.toString())));
+
+                        // попытка сократить используемую память:
+                        sb.replace(0, sb.toString().length(), "");
+                        sb.trimToSize();
+
                         i++;
                     }
+
+                    // попытка сократить используемую память:
+                    if (rows.size() >= MAX_ROWS_TO_SAVE_LIMIT) {
+                        // сохранение строк страницы в БД:
+                        rowsCount += rows.size();
+                        save(rows.values());
+                        rows.clear();
+                        i = 0;
+                    }
                 }
-                log.info("Распарсено строк: {}", rows.size());
 
                 // сохранение строк страницы в БД:
                 rowsCount += rows.size();
                 save(rows.values());
+
+                // вынужденная мера из-за урезанных ресурсов (да, это плохо):
+                System.gc();
             }
 
+            log.info("Распарсено строк: {}. Создание записи о документе...", rowsCount);
             filesStoryRepository.saveAndFlush(FileStory.builder()
                     .docName(file.getOriginalFilename())
                     .docSize(file.getSize())
-                    .sheetsCount(pages)
+                    .sheetsCount(workbook.getNumberOfSheets())
                     .rowsCount(rowsCount)
                     .build());
         }
@@ -149,11 +166,13 @@ public class ExcelService {
             for (Sheet sheet : workbook.getSheets()) {
                 log.info("Читаем страницу {}...", sheet.getName());
                 int rowsCount = sheet.getRows();
-                Map<Integer, ParsedRowDTO> rows = new HashMap<>(rowsCount);
+
+                // делится на 2, т.к. не все строки могут содержать полезные данные и отфильтровываются в процессе:
+                final Map<Integer, ParsedRowDTO> rows = new HashMap<>(rowsCount / 2);
                 for (int i = 0; i < rowsCount; i++) {
                     rows.put(i, buildNewRowDtoOld(file, sheet));
 
-                    StringBuilder sb = new StringBuilder();
+                    final StringBuilder sb = new StringBuilder();
                     for (Cell cell : sheet.getRow(i)) {
                         if (cell.isHidden()) {
                             continue;
@@ -188,6 +207,7 @@ public class ExcelService {
                     .rowsCount(rCount)
                     .build());
         }
+
     }
 
     private boolean hasUsefulData(StringBuilder sb) {
@@ -195,13 +215,20 @@ public class ExcelService {
                 .replace(EMPTY_CELL_MOCK, "")
                 .replace(WORD_DELIMITER, "")
                 .trim();
-        return !tmp.isBlank() && !tmp.equals(".") && !tmp.equals(",");
+        boolean isUseful = !tmp.isBlank()
+                && !tmp.equals(".")
+                && !tmp.equals(",")
+                && tmp.split(" ").length > 1;
+        return isUseful
+                && Arrays.stream(sb.toString().replace(EMPTY_CELL_MOCK, " ").split(WORD_DELIMITER))
+                .filter(s -> !s.trim().isBlank()).toArray().length > props.getMinFilledCellRowSave();
     }
 
-    private ParsedRowDTO buildNewRowDto(MultipartFile file, org.apache.poi.ss.usermodel.Sheet sheet) {
+    private ParsedRowDTO buildNewRowDto(MultipartFile file, org.apache.poi.ss.usermodel.Sheet sheet, String rowData) {
         return ParsedRowDTO.builder()
                 .docName(file.getOriginalFilename())
-                .sheetName(sheet.getSheetName()).build();
+                .sheetName(sheet.getSheetName())
+                .rowData(rowData).build();
     }
 
     private ParsedRowDTO buildNewRowDtoOld(MultipartFile file, Sheet sheet) {

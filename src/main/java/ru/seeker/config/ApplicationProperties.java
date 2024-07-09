@@ -8,7 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "app")
 public class ApplicationProperties {
-    private String notifyUrl;
     private double poiZipSecureMinInflateRatio;
     private long poiZipSecureMaxFileCount;
+    private int minFilledCellRowSave;
+    private String correctWebPassword;
 }

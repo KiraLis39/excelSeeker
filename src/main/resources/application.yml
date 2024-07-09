@@ -20,7 +20,7 @@ spring:
 
   application:
     name: ExcelSeekerService
-    version: 0.1.1
+    version: 0.1.2
 
   profiles:
     active: dev
@@ -42,7 +42,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update # для dev - update, для prod - validate.
+      ddl-auto: validate # для dev - update, для prod - validate.
     open-in-view: false
     show-sql: false
     properties:
@@ -71,9 +71,12 @@ spring:
       max-request-size: ${MAX_MULTIPART_REQUEST_SIZE:50MB}
 
 app:
-  notifyUrl: ${NOTIFY_SERVICE_URL:https://none.none.dev/seeker/notification/send}
+  #  Настройка размера парсимых документов:
   poiZipSecureMinInflateRatio: ${POI_MIN_INFLATE_RATIO:0.01}
   poiZipSecureMaxFileCount: ${POI_MAX_FILE_COUNT:1500}
+  #  Сколько ячеек минимум должно быть не пустыми в строке для сохранения её в БД:
+  minFilledCellRowSave: ${MIN_FILLED_CELL_ROW_SAVE:2}
+  correctWebPassword: ${CORRECT_WEB_PASSWORD:333}
 
 springdoc:
   api-docs:

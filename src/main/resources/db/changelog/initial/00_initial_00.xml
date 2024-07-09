@@ -9,20 +9,21 @@
             (
                 uuid        uuid                    not null
                     constraint parsed_document_pkey primary key,
-                doc_name    varchar(255)            not null,
+                doc_name    varchar(128)            not null,
                 sheet_name  varchar(64)             not null,
-                row_data    varchar(1023),
+                row_data    varchar(2047),
                 parsed_date timestamp default now() not null
             );
             comment
             on column parsed_document_row.doc_name is 'Имя документа-источника данных';
             alter table parsed_document_row owner to seeker;
+            create index parsed_doc_row_data_index on parsed_document_row using hash (row_data);
 
             create table files_story
             (
                 uuid         uuid                    not null
                     constraint files_story_pk primary key,
-                doc_name     varchar(255)            not null,
+                doc_name     varchar(128)            not null,
                 doc_size     bigint                  not null,
                 rows_count   integer,
                 sheets_count integer,

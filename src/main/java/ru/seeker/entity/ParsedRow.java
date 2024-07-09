@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -23,7 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Entity
-@Table(name = "parsed_document_row")
+@Table(name = "parsed_document_row", indexes = @Index(name = "row_data_tind", columnList = "row_data"))
 public class ParsedRow {
 
     @Id
@@ -43,11 +44,6 @@ public class ParsedRow {
     @CreatedDate
     private ZonedDateTime parsedDate = ZonedDateTime.now();
 
-    @Column(name = "row_data")
+    @Column(name = "row_data", length = 1023)
     private String rowData;
-
-//    @Builder.Default
-//    @ElementCollection(fetch = FetchType.EAGER, targetClass = String.class)
-//    @CollectionTable(name = "row_data")
-//    private Set<String> rowData = new HashSet<>();
 }

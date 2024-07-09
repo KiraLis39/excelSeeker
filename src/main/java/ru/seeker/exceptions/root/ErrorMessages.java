@@ -15,7 +15,8 @@ public enum ErrorMessages {
     FILESYSTEM_ERROR("E006", "Ошибка файловой системы (создания/удаления файла или директории)"),
     WRONG_DOCUMENT_TYPE("E007", "Неподдерживаемый формат файла"),
     WAS_LOADED_ALREADY("E008", "Документ уже загружался ранее"),
-    DOCUMENT_ERROR("E009", "Ошибка при обработке документа");
+    DOCUMENT_ERROR("E009", "Ошибка при обработке документа"),
+    JSON_PARSE_ERROR("E010", "Ошибка при разборе полученного json");
 
     private final String errorCode;
     private final String errorCause;

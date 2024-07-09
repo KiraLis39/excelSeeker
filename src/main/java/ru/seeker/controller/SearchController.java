@@ -19,7 +19,7 @@ import ru.seeker.service.ParsedRowService;
 @AllArgsConstructor
 @Tag(name = "Работа с данными", description = "Работа с данными")
 @RequestMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
-public class ExcelController {
+public class SearchController {
     private final ParsedRowService rowService;
 
     @Operation(summary = "Поиск данных по запросу", description = "Поиск данных по запросу из поисковой строки сайта")
