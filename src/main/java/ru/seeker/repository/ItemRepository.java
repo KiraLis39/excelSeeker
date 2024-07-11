@@ -42,14 +42,16 @@ public interface ItemRepository extends JpaRepository<Item, UUID>, JpaSpecificat
 //                or e.eventProject.projectName like :projectSlug))""")
 
     @Query(value = """
-            SELECT distinct on(rez.sku) * FROM (
-            select * from items it inner join sheets sh on it.sheet = sh.uuid
-            where (LOWER(it.title) like CONCAT('%', :#{#text}, '%'))
-            or (LOWER(it.description) like CONCAT('%', :#{#text}, '%'))
-            or (LOWER(it.category) like CONCAT('%', :#{#text}, '%'))
-            or (LOWER(it.model) like CONCAT('%', :#{#text}, '%'))
-            or (LOWER(it.excerpt) like CONCAT('%', :#{#text}, '%'))
-            or (LOWER(it.sku) like CONCAT('%', :#{#text}, '%'))
-            order by it.sku, sh.parsed_date DESC) rez""", nativeQuery = true)
+            SELECT * FROM (
+                SELECT DISTINCT ON(itm.sku) sts.parsed_date date, itm.*
+                FROM public.items itm LEFT JOIN public.sheets sts ON itm.sheet = sts.uuid
+                ORDER BY itm.sku, sts.parsed_date DESC) t
+            WHERE LOWER(title) like CONCAT('%', :#{#text}, '%')
+                OR LOWER(description) like CONCAT('%', :#{#text}, '%')
+                OR LOWER(model) like CONCAT('%', :#{#text}, '%')
+                OR LOWER(excerpt) like CONCAT('%', :#{#text}, '%')
+                OR LOWER(category) like CONCAT('%', :#{#text}, '%')
+                OR LOWER(sku) like CONCAT('%', :#{#text}, '%')""",
+            nativeQuery = true)
     Page<Item> findAllByText(@Param("text") String text, Pageable page);
 }
