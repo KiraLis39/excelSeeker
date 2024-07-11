@@ -12,4 +12,5 @@ public class ApplicationProperties {
     private long poiZipSecureMaxFileCount;
     private int minFilledCellRowSave;
     private String correctWebPassword;
+    private String adminIp;
 }

@@ -4,13 +4,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ru.seeker.entity.ParsedRow;
+import ru.seeker.entity.Item;
+
+import java.util.UUID;
 
 @Repository
-public interface ParsedRowRepository extends JpaRepository<ParsedRow, Long>, JpaSpecificationExecutor<ParsedRow> {
+public interface ItemRepository extends JpaRepository<Item, UUID>, JpaSpecificationExecutor<Item> {
 
 //    @Query(value = """
 //            SELECT CAST(e.event_id AS varchar) FROM events e
@@ -38,11 +40,16 @@ public interface ParsedRowRepository extends JpaRepository<ParsedRow, Long>, Jpa
 //                and (:projectSlugIsSet = false
 //                or e.eventProject.projectSlug like :projectSlug
 //                or e.eventProject.projectName like :projectSlug))""")
-    @Query(value = "select pr from ParsedRow pr where LOWER(pr.rowData) like %:text%")
-    Page<ParsedRow> findAllByText(String text, Pageable page);
 
-    @Modifying
-    void deleteAllByDocNameIgnoreCase(String docName);
-
-    boolean existsByDocName(String docName);
+    @Query(value = """
+            SELECT distinct on(rez.sku) * FROM (
+            select * from items it inner join sheets sh on it.sheet = sh.uuid
+            where (LOWER(it.title) like CONCAT('%', :#{#text}, '%'))
+            or (LOWER(it.description) like CONCAT('%', :#{#text}, '%'))
+            or (LOWER(it.category) like CONCAT('%', :#{#text}, '%'))
+            or (LOWER(it.model) like CONCAT('%', :#{#text}, '%'))
+            or (LOWER(it.excerpt) like CONCAT('%', :#{#text}, '%'))
+            or (LOWER(it.sku) like CONCAT('%', :#{#text}, '%'))
+            order by it.sku, sh.parsed_date DESC) rez""", nativeQuery = true)
+    Page<Item> findAllByText(@Param("text") String text, Pageable page);
 }

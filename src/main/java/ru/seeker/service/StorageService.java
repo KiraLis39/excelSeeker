@@ -24,6 +24,10 @@ public class StorageService {
         return parsedRowService.deleteAllDataByDocName(docName);
     }
 
+    public ResponseEntity<HttpStatus> deleteAllDataBySheetName(String sheetName) {
+        return parsedRowService.deleteAllDataBySheetName(sheetName);
+    }
+
     public Page<FileStory> findAllDocuments(int count, int page) {
         return storyRepository.findAll(Pageable.ofSize(count).withPage(page));
 //        PageImpl(List<T> content, Pageable pageable, long total);

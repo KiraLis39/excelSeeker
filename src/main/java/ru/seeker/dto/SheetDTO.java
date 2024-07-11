@@ -11,6 +11,8 @@ import org.hibernate.annotations.Comment;
 
 import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -18,7 +20,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class ParsedRowDTO {
+public class SheetDTO {
 
     @JsonIgnore
     @Builder.Default
@@ -37,6 +39,11 @@ public class ParsedRowDTO {
     private ZonedDateTime parsedDate = ZonedDateTime.now();
 
     @NotNull
-    @JsonProperty("rowData")
-    private String rowData;
+    @Builder.Default
+    @JsonProperty("items")
+    private List<ItemDTO> items = new ArrayList<>();
+
+    public void addItem(ItemDTO item) {
+        this.items.add(item);
+    }
 }

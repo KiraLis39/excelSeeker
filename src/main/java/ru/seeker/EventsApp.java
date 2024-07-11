@@ -25,7 +25,7 @@ public class EventsApp {
         SpringApplication app = new SpringApplication(EventsApp.class);
         app.setDefaultProperties(Map.of("spring.profiles.active", "dev"));
         logApplicationStartup(app.run(args).getEnvironment());
-        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Moscow"));
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+0"));
     }
 
     private static void logApplicationStartup(Environment env) {
@@ -41,8 +41,8 @@ public class EventsApp {
         } catch (UnknownHostException e) {
             log.warn("The host name could not be determined, using `localhost` as fallback");
         }
-        log.info(
-                """
+        log.info("""
+
                             ----------------------------------------------------------
                             \tApplication '{}' is running! Access URLs:"
                             \tLocal: \t\t{}://localhost:{}{}"

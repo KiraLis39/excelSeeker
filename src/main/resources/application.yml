@@ -20,7 +20,7 @@ spring:
 
   application:
     name: ExcelSeekerService
-    version: 0.1.2
+    version: 0.1.5
 
   profiles:
     active: dev
@@ -33,7 +33,7 @@ spring:
     password: ${DB_PASSWORD:seeker}
     hikari:
       poolName: Hikari
-      auto-commit: false
+      auto-commit: true
 
   liquibase:
     enabled: true
@@ -77,6 +77,7 @@ app:
   #  Сколько ячеек минимум должно быть не пустыми в строке для сохранения её в БД:
   minFilledCellRowSave: ${MIN_FILLED_CELL_ROW_SAVE:2}
   correctWebPassword: ${CORRECT_WEB_PASSWORD:333}
+  admin-ip: ${ADMIN_IP:0:0:0:0:0:0:0:1}
 
 springdoc:
   api-docs:

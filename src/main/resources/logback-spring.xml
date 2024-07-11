@@ -16,7 +16,7 @@
     <property name="log.oldColorPattern"
               value="%magenta(%d{yyyy-MM-dd HH:mm:ss}) %highlight(%-5level) %boldCyan([App: ${appName}, v.${appVersion}]) %yellow(%thread) %green(%logger{64}) %msg%n"/>
     <property name="log.colorPattern"
-              value="%magenta(%d{MM-dd HH:mm:ss}) %highlight(%level) %green(%logger{24}) %msg%n"/>
+              value="%magenta(%d{dd MMMM HH:mm:ss}) %highlight(%level) %green(%logger{14}.%M\\(\\)\\_%red(:%L) %1()) %msg%n"/>
 
     <!-- APPENDERS -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

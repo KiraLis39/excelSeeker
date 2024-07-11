@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jxl.read.biff.BiffException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.auth.AuthenticationException;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -23,10 +24,12 @@ import ru.seeker.config.ApplicationProperties;
 import ru.seeker.entity.FileStory;
 import ru.seeker.exceptions.GlobalServiceException;
 import ru.seeker.exceptions.root.ErrorMessages;
+import ru.seeker.service.AuthService;
 import ru.seeker.service.ExcelService;
 import ru.seeker.service.StorageService;
 import ru.seeker.utils.ExceptionUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
@@ -39,13 +42,22 @@ public class FileController {
     private final ApplicationProperties props;
     private final ExcelService excelService;
     private final StorageService storageService;
+    private final AuthService authService;
 
     @Operation(summary = "Загрузка документов", description = "Загрузка документа")
     @ApiResponse(responseCode = "200", description = "OK")
     @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
     @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
     @PostMapping(path = "/load", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<HttpStatus> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<HttpStatus> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request
+    ) {
+        if (!authService.isAuthUser(request.getRemoteHost()) && !authService.isAdmin(request)) {
+            log.info("Доступ пользователю {} запрещён!", request.getRemoteHost());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         try {
             ZipSecureFile.setMinInflateRatio(props.getPoiZipSecureMinInflateRatio());
             ZipSecureFile.setMaxFileCount(props.getPoiZipSecureMaxFileCount());
@@ -63,11 +75,35 @@ public class FileController {
     }
 
     @Operation(summary = "Удаление файлов", description = "Удаление файлов")
-    @ApiResponse(responseCode = "200", description = "Файл успешно удалён",
-            content = {@Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
-    @PostMapping("/delete")
-    public ResponseEntity<HttpStatus> deleteFile(@RequestParam String fileName) {
-        return storageService.deleteAllDataByDocName(fileName);
+    @ApiResponse(responseCode = "200", description = "Файл успешно удалён", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
+    @PostMapping("/delete/document")
+    public ResponseEntity<HttpStatus> deleteFile(
+            @RequestParam String fileName,
+            @RequestParam String password
+    ) {
+        try {
+            authService.checkAuth(null, password);
+            return storageService.deleteAllDataByDocName(fileName);
+        } catch (AuthenticationException e) {
+            throw new GlobalServiceException(ErrorMessages.UNIVERSAL_ERROR_TEMPLATE, ExceptionUtils.getFullExceptionMessage(e));
+        }
+    }
+
+    @Operation(summary = "Удаление страниц", description = "Удаление страниц")
+    @ApiResponse(responseCode = "200", description = "Страница успешно удалена", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
+    @PostMapping("/delete/sheet")
+    public ResponseEntity<HttpStatus> deleteSheet(
+            @RequestParam String sheetName,
+            @RequestParam String password
+    ) {
+        try {
+            authService.checkAuth(null, password);
+            return storageService.deleteAllDataBySheetName(sheetName);
+        } catch (AuthenticationException e) {
+            throw new GlobalServiceException(ErrorMessages.UNIVERSAL_ERROR_TEMPLATE, ExceptionUtils.getFullExceptionMessage(e));
+        }
     }
 
 //    @Operation(summary = "Получение файла", description = "Получение файла")

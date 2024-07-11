@@ -19,7 +19,7 @@ public class AppExceptionsHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = {Exception.class})
     public ResponseEntity<Object> handleAnyException(Exception ex, WebRequest request) {
-        String errorMessage = ex.getMessage() != null ? ": " + ex.getMessage() : "";
+        String errorMessage = ExceptionUtils.getFullExceptionMessage(ex);
         log.warn(HANDLER_EXCEPTION_PREFIX, errorMessage.concat(". Вызвано при: ")
                 .concat(request != null ? request.getContextPath() : "NA"));
         return new ResponseEntity<>(

@@ -10,13 +10,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface FilesStoryRepository extends JpaRepository<FileStory, Long>, JpaSpecificationExecutor<FileStory> {
+public interface FilesStoryRepository extends JpaRepository<FileStory, UUID>, JpaSpecificationExecutor<FileStory> {
 
     @Modifying
     void deleteByDocName(String docName);
-
-    @Modifying
-    void deleteByUuid(UUID uuid);
 
     Optional<FileStory> findByDocNameAndDocSize(String docName, long docSize);
 }

@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seeker.exceptions.GlobalServiceException;
@@ -33,15 +31,6 @@ public class ApiController {
     @GetMapping(path = "/get_ptk_json") //, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getPtkJson() {
         return rowService.getPtkJsonData();
-    }
-
-    @Operation(summary = "Загрузка JSON от ПТК", description = "Ручная загрузка JSON от ПТК")
-    @ApiResponse(responseCode = "200", description = "Данные успешно обработаны")
-    @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
-    @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
-    @PostMapping(path = "/put_ptk_json", consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<HttpStatus> putPtkJson(@RequestBody() String data) {
-        return rowService.parsePtkJsonData(data);
     }
 
     @Operation(summary = "Автозагрузка JSON от ПТК", description = "Загрузка данных ПТК в БД")

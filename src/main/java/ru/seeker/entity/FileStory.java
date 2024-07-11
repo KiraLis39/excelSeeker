@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,6 +47,7 @@ public class FileStory {
     private int rowsCount;
 
     @Builder.Default
-    @Column(name = "load_date", nullable = false)
+    @CreatedDate
+    @Column(name = "load_date", nullable = false, columnDefinition = "TIMESTAMP default now()") // CURRENT_TIMESTAMP
     private ZonedDateTime loadDate = ZonedDateTime.now();
 }

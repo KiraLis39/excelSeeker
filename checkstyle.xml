@@ -36,7 +36,7 @@
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
-        <!--        <module name="MethodName"/> мешает разработке! (в частности методам jpa) -->
+<!--        <module name="MethodName"/> мешает разработке! (в частности методам jpa) -->
         <module name="PackageName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
@@ -47,7 +47,9 @@
             <property name="processJavadoc" value="false"/>
         </module>
 
-        <module name="MethodLength"/>
+        <module name="MethodLength">
+            <property name="max" value="220"/>
+        </module>
         <module name="ParameterNumber">
             <property name="id" value="maxParameterNumber"/>
             <property name="max" value="15"/>
@@ -76,10 +78,10 @@
 
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
-        <module name="HiddenField">
-            <property name="ignoreSetter" value="true"/>
-            <property name="ignoreConstructorParameter" value="true"/>
-        </module>
+<!--        <module name="HiddenField">-->
+<!--            <property name="ignoreSetter" value="true"/>-->
+<!--            <property name="ignoreConstructorParameter" value="true"/>-->
+<!--        </module>-->
         <module name="IllegalInstantiation"/>
         <!--        <module name="InnerAssignment" мешает работе />-->
         <!--        <module name="MagicNumber"/> мешает работе -->

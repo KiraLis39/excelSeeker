@@ -5,34 +5,55 @@
 
     <changeSet author="KiraLis39" id="0000000001">
         <sql>
-            create table parsed_document_row
-            (
-                uuid        uuid                    not null
-                    constraint parsed_document_pkey primary key,
-                doc_name    varchar(128)            not null,
-                sheet_name  varchar(64)             not null,
-                row_data    varchar(2047),
-                parsed_date timestamp default now() not null
-            );
-            comment
-            on column parsed_document_row.doc_name is 'Имя документа-источника данных';
-            alter table parsed_document_row owner to seeker;
-            create index parsed_doc_row_data_index on parsed_document_row using hash (row_data);
-
             create table files_story
             (
                 uuid         uuid                    not null
-                    constraint files_story_pk primary key,
-                doc_name     varchar(128)            not null,
+                    primary key,
+                doc_name     varchar(255)            not null,
                 doc_size     bigint                  not null,
+                load_date    timestamp default now() not null,
                 rows_count   integer,
                 sheets_count integer,
-                load_date    timestamp default now() not null,
-                constraint name_size_uniq_ind unique (doc_name, doc_size)
+                constraint name_size_uniq_ind
+                    unique (doc_name, doc_size)
             );
-            comment
-            on table files_story is 'Информация о загруженных ранее файлах';
-            alter table files_story owner to seeker;
+
+            alter table files_story
+                owner to seeker;
+
+            create table sheets
+            (
+                uuid        uuid                    not null
+                    primary key,
+                doc_name    varchar(255),
+                parsed_date timestamp default now() not null,
+                sheet_name  varchar(255)
+            );
+
+            alter table sheets
+                owner to seeker;
+
+            create table items
+            (
+                uuid        uuid not null
+                    primary key,
+                category    varchar(255),
+                description text,
+                excerpt     varchar(1023),
+                link        varchar(255),
+                model       varchar(255),
+                opt         double precision,
+                price       double precision,
+                sku         varchar(255),
+                stock       integer,
+                title       varchar(1023),
+                sheet       uuid not null
+                    constraint fkodjampvochiquakvv4d5wkbax
+                        references sheets
+            );
+
+            alter table items
+                owner to seeker;
         </sql>
     </changeSet>
 </databaseChangeLog>
