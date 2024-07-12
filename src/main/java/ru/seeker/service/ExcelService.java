@@ -266,7 +266,7 @@ public class ExcelService {
             if (rowsCount > 0) {
                 log.info("Распарсено строк: {}. Создание записи о документе...", rowsCount);
                 filesStoryRepository.saveAndFlush(FileStory.builder()
-                        .docName(file.getOriginalFilename())
+                        .docName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : null)
                         .docSize(file.getSize())
                         .sheetsCount(workbook.getNumberOfSheets())
                         .rowsCount(rowsCount)
@@ -488,7 +488,7 @@ public class ExcelService {
             workbook.close();
 
             filesStoryRepository.saveAndFlush(FileStory.builder()
-                    .docName(file.getOriginalFilename())
+                    .docName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : null)
                     .docSize(file.getSize())
                     .sheetsCount(shCount)
                     .rowsCount(rowsCount)

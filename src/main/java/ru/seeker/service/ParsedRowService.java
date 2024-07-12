@@ -49,27 +49,27 @@ public class ParsedRowService {
         return itemMapper.toWebAdaptDto(found);
     }
 
-    public ResponseEntity<HttpStatus> deleteAllDataByDocName(String docName) {
-        boolean isExists = sheetRepository.existsByDocName(docName);
+    public ResponseEntity<HttpStatus> deleteAllDataByDocName(String docName, ZonedDateTime date) {
+        boolean isExists = sheetRepository.existsByDocNameIgnoreCaseAndParsedDate(docName.trim(), date);
         if (!isExists) {
             log.info("Не найден на удаление документ с именем '{}'", docName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         log.warn("Удаление данных документа '{}'...", docName);
-        sheetRepository.deleteAllByDocNameIgnoreCase(docName);
+        sheetRepository.deleteAllByDocNameIgnoreCaseAndParsedDate(docName, date);
         storyRepository.deleteByDocName(docName);
         log.warn("Документ '{}' был удалён из базы.", docName);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public ResponseEntity<HttpStatus> deleteAllDataBySheetName(String sheetName) {
-        boolean isExists = sheetRepository.existsByDocName(sheetName);
+    public ResponseEntity<HttpStatus> deleteAllDataBySheetName(String sheetName, ZonedDateTime date) {
+        boolean isExists = sheetRepository.existsByDocNameIgnoreCaseAndParsedDate(sheetName.trim(), date);
         if (!isExists) {
             log.info("Не найдена на удаление страница с именем '{}'", sheetName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         log.warn("Удаление данных страницы '{}'...", sheetName);
-        sheetRepository.deleteAllBySheetNameIgnoreCase(sheetName);
+        sheetRepository.deleteAllBySheetNameIgnoreCaseAndParsedDate(sheetName, date);
         log.warn("Страница '{}' была удалёна из базы.", sheetName);
         return new ResponseEntity<>(HttpStatus.OK);
     }

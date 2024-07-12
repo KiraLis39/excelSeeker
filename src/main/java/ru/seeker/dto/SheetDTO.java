@@ -43,6 +43,7 @@ public class SheetDTO {
     @JsonProperty("items")
     private List<ItemDTO> items = new ArrayList<>();
 
+    @JsonIgnore
     public void addItem(ItemDTO item) {
         this.items.add(item);
     }

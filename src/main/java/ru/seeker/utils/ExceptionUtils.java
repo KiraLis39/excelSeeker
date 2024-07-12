@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public final class ExceptionUtils {
-    public static String getFullExceptionMessage(Exception e) {
+    public static String getFullExceptionMessage(Throwable e) {
         return e.getCause() == null
                 ? e.getMessage() : e.getCause().getCause() == null
                 ? e.getCause().getMessage() : e.getCause().getCause().getMessage();

@@ -7,10 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.seeker.dto.SheetDTO;
 import ru.seeker.entity.FileStory;
+import ru.seeker.mapper.SheetMapper;
 import ru.seeker.repository.FilesStoryRepository;
+import ru.seeker.repository.SheetRepository;
 
 import javax.transaction.Transactional;
+import java.time.ZonedDateTime;
 
 @Slf4j
 @Service
@@ -19,18 +23,25 @@ import javax.transaction.Transactional;
 public class StorageService {
     private final ParsedRowService parsedRowService;
     private final FilesStoryRepository storyRepository;
+    private final SheetRepository sheetRepository;
+    private final SheetMapper sheetMapper;
 
-    public ResponseEntity<HttpStatus> deleteAllDataByDocName(String docName) {
-        return parsedRowService.deleteAllDataByDocName(docName);
+    public ResponseEntity<HttpStatus> deleteAllDataByDocName(String docName, ZonedDateTime date) {
+        return parsedRowService.deleteAllDataByDocName(docName, date);
     }
 
-    public ResponseEntity<HttpStatus> deleteAllDataBySheetName(String sheetName) {
-        return parsedRowService.deleteAllDataBySheetName(sheetName);
+    public ResponseEntity<HttpStatus> deleteAllDataBySheetName(String sheetName, ZonedDateTime date) {
+        return parsedRowService.deleteAllDataBySheetName(sheetName, date);
     }
 
     public Page<FileStory> findAllDocuments(int count, int page) {
         return storyRepository.findAll(Pageable.ofSize(count).withPage(page));
-//        PageImpl(List<T> content, Pageable pageable, long total);
+    }
+
+    public Page<SheetDTO> findAllSheets(int count, int page) {
+        Page<SheetDTO> found = sheetMapper.toDto(sheetRepository.findAll(Pageable.ofSize(count).withPage(page)));
+        found.forEach(s -> s.setItems(null));
+        return found;
     }
 
 //    public void storeFile(MultipartFile file) {

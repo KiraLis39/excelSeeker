@@ -22,10 +22,11 @@ import java.util.TimeZone;
 public class EventsApp {
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+3"));
+
         SpringApplication app = new SpringApplication(EventsApp.class);
         app.setDefaultProperties(Map.of("spring.profiles.active", "dev"));
         logApplicationStartup(app.run(args).getEnvironment());
-        TimeZone.setDefault(TimeZone.getTimeZone("GMT+0"));
     }
 
     private static void logApplicationStartup(Environment env) {

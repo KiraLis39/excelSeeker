@@ -10,7 +10,9 @@ server:
     context-path: ${SERVER_SERVLET_CONTEXT_PATH:/seeker}
   compression:
     enabled: true
-
+  error:
+    whitelabel:
+      enabled: false
 
 spring:
   main:

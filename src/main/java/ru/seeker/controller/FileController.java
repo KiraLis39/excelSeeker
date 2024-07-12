@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jxl.read.biff.BiffException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.auth.AuthenticationException;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.seeker.config.ApplicationProperties;
+import ru.seeker.dto.SheetDTO;
 import ru.seeker.entity.FileStory;
 import ru.seeker.exceptions.GlobalServiceException;
 import ru.seeker.exceptions.root.ErrorMessages;
@@ -32,6 +32,7 @@ import ru.seeker.utils.ExceptionUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
+import java.time.ZonedDateTime;
 
 @Slf4j
 @RestController
@@ -80,14 +81,9 @@ public class FileController {
     @PostMapping("/delete/document")
     public ResponseEntity<HttpStatus> deleteFile(
             @RequestParam String fileName,
-            @RequestParam String password
+            @RequestParam String docDate
     ) {
-        try {
-            authService.checkAuth(null, password);
-            return storageService.deleteAllDataByDocName(fileName);
-        } catch (AuthenticationException e) {
-            throw new GlobalServiceException(ErrorMessages.UNIVERSAL_ERROR_TEMPLATE, ExceptionUtils.getFullExceptionMessage(e));
-        }
+        return storageService.deleteAllDataByDocName(fileName, ZonedDateTime.parse(docDate));
     }
 
     @Operation(summary = "Удаление страниц", description = "Удаление страниц")
@@ -96,24 +92,10 @@ public class FileController {
     @PostMapping("/delete/sheet")
     public ResponseEntity<HttpStatus> deleteSheet(
             @RequestParam String sheetName,
-            @RequestParam String password
+            @RequestParam String docDate
     ) {
-        try {
-            authService.checkAuth(null, password);
-            return storageService.deleteAllDataBySheetName(sheetName);
-        } catch (AuthenticationException e) {
-            throw new GlobalServiceException(ErrorMessages.UNIVERSAL_ERROR_TEMPLATE, ExceptionUtils.getFullExceptionMessage(e));
-        }
+        return storageService.deleteAllDataBySheetName(sheetName, ZonedDateTime.parse(docDate));
     }
-
-//    @Operation(summary = "Получение файла", description = "Получение файла")
-//    @ApiResponse(responseCode = "200", description = "Файл успешно обнаружен")
-//    @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
-//    @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
-//    @GetMapping("/get")
-//    public ResponseEntity<byte[]> getFile(@RequestParam String file) {
-//        return ResponseEntity.ok(new byte[0]);
-//    }
 
     @Operation(summary = "Список загруженных документов", description = "Получить список загруженных ранее документов")
     @ApiResponse(responseCode = "200", description = "Поиск успешно выполнен")
@@ -125,5 +107,17 @@ public class FileController {
             @RequestParam(value = "count", defaultValue = "10", required = false) int count
     ) {
         return storageService.findAllDocuments(count, page);
+    }
+
+    @Operation(summary = "Список загруженных страниц", description = "Получить список загруженных ранее страниц (блоков данных)")
+    @ApiResponse(responseCode = "200", description = "Поиск успешно выполнен")
+    @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
+    @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
+    @GetMapping(path = "/sheets") //, consumes = {MediaType.APPLICATION_JSON_VALUE}
+    public Page<SheetDTO> sheetList(
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(value = "count", defaultValue = "10", required = false) int count
+    ) {
+        return storageService.findAllSheets(count, page);
     }
 }
