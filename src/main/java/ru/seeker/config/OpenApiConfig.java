@@ -15,7 +15,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("EXCEL-SEEKER-SERVICE")
                         .description("Сервис обработки и хранения данных")
-                        .version("API 0.1.5") // as application:version
+                        .version("API 0.1.6") // as application:version
                         .license(new License().name("Apache 2.0").url("https://springdoc.org")))
                 .externalDocs(new ExternalDocumentation()
                         .description("Табличные данные поставщиков")

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.seeker.dto.ItemDTO;
+import ru.seeker.dto.WebAdaptDTO;
 import ru.seeker.service.AuthService;
 import ru.seeker.service.ParsedRowService;
 
@@ -32,7 +32,7 @@ public class SearchController {
     @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
     @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
     @GetMapping(path = "/search") //, consumes = {MediaType.APPLICATION_JSON_VALUE}
-    public Page<ItemDTO> search(
+    public Page<WebAdaptDTO> search(
             @RequestParam("word") String word,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page,
             @RequestParam(value = "count", defaultValue = "10", required = false) int count,

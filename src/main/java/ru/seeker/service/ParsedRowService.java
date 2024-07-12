@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.seeker.dto.ItemDTO;
 import ru.seeker.dto.SheetDTO;
+import ru.seeker.dto.WebAdaptDTO;
 import ru.seeker.entity.Item;
 import ru.seeker.entity.Sheet;
 import ru.seeker.mapper.ItemMapper;
@@ -24,6 +25,7 @@ import ru.seeker.repository.FilesStoryRepository;
 import ru.seeker.repository.ItemRepository;
 import ru.seeker.repository.SheetRepository;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -40,19 +42,11 @@ public class ParsedRowService {
     private final HttpService httpService;
 
     @Transactional(readOnly = true)
-    public Page<ItemDTO> findAllByText(String text, int count, int page) {
+    public Page<WebAdaptDTO> findAllByText(String text, int count, int page) {
         log.info("Поиск в базе по строке '{}'...", text.toLowerCase());
         Page<Item> found = itemRepository.findAllByText(text.toLowerCase(), Pageable.ofSize(count).withPage(page));
         log.info("Найдено в базе совпадений по тексту '{}': {} шт.", text, found.getContent().size());
-
-        Page<ItemDTO> result = itemMapper.toDto(found);
-        result.forEach(item -> {
-            item.setStock(item.getStock_msk() - item.getReserve_msk() + item.getStock_spb() - item.getReserve_spb());
-//            if (item.getOpt() == 0) {
-//                item.setOpt(item.getPrice());
-//            }
-        });
-        return result;
+        return itemMapper.toWebAdaptDto(found);
     }
 
     public ResponseEntity<HttpStatus> deleteAllDataByDocName(String docName) {
@@ -97,21 +91,19 @@ public class ParsedRowService {
 
     public ResponseEntity<HttpStatus> reloadPtkData() throws JsonProcessingException {
         log.info("Запрос номенклатурных данных из 'ptk-svarka.ru'...");
+
         Set<ItemDTO> arr = new JsonMapper().readValue(getPtkJsonData().getBody(), new TypeReference<>() {
         });
         log.info("Из 'ptk-svarka.ru' получено единиц товаров {}. Предварительная обработка...", arr.size());
         List<Item> ents = itemMapper.toEntity(arr);
-//        arr.forEach(itemDTO -> {
-//            itemDTO.setDescription(itemDTO.getDescription()
-//                .replace("<p>", "")
-//                .replace("<h1>", ""));
-//        });
+
         log.info("Предварительная обработка завершена. Сохраняем...");
-        Sheet sh = sheetRepository.save(Sheet.builder().sheetName("ПТК сварка").build());
+        ZonedDateTime now = ZonedDateTime.now();
+        Sheet sh = sheetRepository.save(Sheet.builder()
+                .docName("ПТК сварка %s.%s.%s".formatted(now.getDayOfMonth(), now.getMonth(), now.getYear())).build());
         ents.forEach(item -> item.setSheet(sh));
         List<Item> saved = itemRepository.saveAll(ents);
         sh.setItems(saved);
-        // saved.forEach(item -> item.setSheet(sh));
         sheetRepository.saveAndFlush(sh);
 
         log.info("Данные из 'ptk-svarka.ru' сохранены в количестве {} шт.", arr.size());

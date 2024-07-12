@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import ru.seeker.dto.ItemDTO;
+import ru.seeker.dto.TorCsvDTO;
+import ru.seeker.dto.WebAdaptDTO;
 import ru.seeker.entity.Item;
 
 import java.util.Collection;
@@ -66,5 +68,43 @@ public class ItemMapper {
         return dtos == null
                 ? Collections.emptyList()
                 : dtos.stream().map(this::toEntity).collect(Collectors.toList());
+    }
+
+    public Page<WebAdaptDTO> toWebAdaptDto(Page<Item> itemsPage) {
+        return itemsPage.map(this::toWebAdaptDto);
+    }
+
+    public WebAdaptDTO toWebAdaptDto(Item item) {
+        return WebAdaptDTO.builder()
+                .category(item.getCategory())
+                .sku(item.getSku())
+                .model(item.getModel())
+                .title(item.getTitle())
+                .rozn(item.getPrice())
+                .opt(item.getOpt())
+                .stock(item.getStock())
+                .link(item.getLink())
+                .description(item.getDescription())
+                .excerpt(item.getExcerpt())
+                .sheetName(item.getSheet().getSheetName())
+                .docName(item.getSheet().getDocName())
+                .parsedDate(item.getSheet().getParsedDate())
+                .build();
+    }
+
+    public List<Item> toEntity(List<TorCsvDTO> beans) {
+        return beans == null
+                ? Collections.emptyList()
+                : beans.stream().map(this::toEntity).collect(Collectors.toList());
+    }
+
+    private Item toEntity(TorCsvDTO dto) {
+        return Item.builder()
+                .sku(dto.getArticle())
+                .title(dto.getNomenclature())
+                .price(dto.getRozn())
+                .opt(dto.getOpt())
+                .stock(dto.getStock())
+                .build();
     }
 }

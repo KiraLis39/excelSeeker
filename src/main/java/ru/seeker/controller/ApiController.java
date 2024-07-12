@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seeker.exceptions.GlobalServiceException;
 import ru.seeker.exceptions.root.ErrorMessages;
+import ru.seeker.service.CsvService;
 import ru.seeker.service.ParsedRowService;
 
 @Slf4j
@@ -23,6 +24,7 @@ import ru.seeker.service.ParsedRowService;
 @RequestMapping(value = "/data", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiController {
     private final ParsedRowService rowService;
+    private final CsvService csvService;
 
     @Operation(summary = "Получить JSON от ПТК", description = "Получить новый файл JSON от ПТК")
     @ApiResponse(responseCode = "200", description = "Данные успешно обработаны")
@@ -44,5 +46,14 @@ public class ApiController {
         } catch (JsonProcessingException json) {
             throw new GlobalServiceException(ErrorMessages.JSON_PARSE_ERROR, json.getMessage());
         }
+    }
+
+    @Operation(summary = "Автозагрузка CSV от ТОР", description = "Автозагрузка CSV от ТОР")
+    @ApiResponse(responseCode = "200", description = "Данные успешно обработаны")
+    @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
+    @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
+    @GetMapping(path = "/load_tor_csv") //, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<HttpStatus> loadTorCsv() {
+        return csvService.loadAndParse();
     }
 }
