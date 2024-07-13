@@ -9,8 +9,9 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import ru.seeker.config.ApplicationProperties;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Getter
@@ -18,25 +19,43 @@ import java.util.Set;
 @ApplicationScope
 @RequiredArgsConstructor
 public class AuthService {
-    private final Set<String> authHosts = new HashSet<>(32);
+    private final Map<String, ZonedDateTime> authHosts = new HashMap<>(32);
     private final ApplicationProperties props;
 
-    public void checkAuth(String login, String password) throws AuthenticationException {
-        if (!password.equals(props.getCorrectWebPassword())) {
+    public boolean checkAuth(String login, String password, HttpServletRequest request) throws AuthenticationException {
+        if (password.equals(props.getCorrectWebPassword())) {
+            log.info("Входящий логин c {}", request.getRemoteAddr());
+            putAuthUser(request.getRemoteHost());
+            return isAuthUser(request);
+        } else {
             throw new AuthenticationException("Неверный логин или пароль");
         }
     }
 
     public void putAuthUser(String host) {
-        authHosts.add(host);
+        authHosts.put(host, ZonedDateTime.now());
     }
 
-    public boolean isAuthUser(String host) {
+    public boolean isAuthUser(HttpServletRequest request) {
+        String host = request.getRemoteHost();
         log.info("Проверка наличия пользователя {} в списке авторизованных...", host);
-        boolean hasFound = authHosts.contains(host);
+        boolean hasFound = authHosts.containsKey(host);
         if (!hasFound) {
             log.info("Пользователь {} не найден в списке авторизованных.", host);
         }
+
+        // если 'тогда + 1 час' уже прошли, относительно 'сейчас':
+        if (authHosts.get(host).plusHours(1).isBefore(ZonedDateTime.now())) {
+            hasFound = false;
+            removeAuthUser(host);
+            log.info("Session timeout for ({}).", request.getRemoteAddr());
+        }
+
+        if (isAdmin(request)) {
+            hasFound = true;
+            log.info("Но он оказался Админом ({}), так что путь открыт...", request.getRemoteAddr());
+        }
+
         return hasFound;
     }
 

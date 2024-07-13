@@ -13,7 +13,9 @@ import java.util.UUID;
 public interface FilesStoryRepository extends JpaRepository<FileStory, UUID>, JpaSpecificationExecutor<FileStory> {
 
     @Modifying
-    void deleteByDocName(String docName);
+    void deleteByUuid(UUID docUuid);
 
     Optional<FileStory> findByDocNameAndDocSize(String docName, long docSize);
+
+    boolean existsByUuid(UUID docUuid);
 }

@@ -41,6 +41,9 @@ public class Sheet {
     @Column(name = "doc_name")
     private String docName;
 
+    @Column(name = "doc_uuid")
+    private UUID docUuid;
+
     @Column(name = "sheet_name")
     private String sheetName;
 

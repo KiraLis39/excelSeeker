@@ -26,6 +26,7 @@
                 uuid        uuid                    not null
                     primary key,
                 doc_name    varchar(255),
+                doc_uuid    uuid,
                 parsed_date timestamp default now() not null,
                 sheet_name  varchar(255)
             );

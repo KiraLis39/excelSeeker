@@ -7,146 +7,78 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.seeker.dto.SheetDTO;
 import ru.seeker.entity.FileStory;
 import ru.seeker.mapper.SheetMapper;
 import ru.seeker.repository.FilesStoryRepository;
 import ru.seeker.repository.SheetRepository;
 
-import javax.transaction.Transactional;
-import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class StorageService {
-    private final ParsedRowService parsedRowService;
     private final FilesStoryRepository storyRepository;
     private final SheetRepository sheetRepository;
     private final SheetMapper sheetMapper;
 
-    public ResponseEntity<HttpStatus> deleteAllDataByDocName(String docName, ZonedDateTime date) {
-        return parsedRowService.deleteAllDataByDocName(docName, date);
+    public ResponseEntity<HttpStatus> deleteAllDataBySheetUuid(UUID sheetUuid) {
+        boolean isExists = sheetRepository.existsByUuid(sheetUuid);
+        if (!isExists) {
+            log.info("Не найдена на удаление страница '{}'", sheetUuid);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        UUID docUuid = sheetRepository.getDocUuidByUuid(sheetUuid);
+        log.warn("Удаление данных страницы '{}'...", sheetUuid);
+        sheetRepository.deleteAllByUuid(sheetUuid);
+        log.warn("Страница '{}' была удалёна из базы.", sheetUuid);
+
+
+        if (sheetRepository.countByDocUuid(docUuid) == 0) {
+            storyRepository.deleteByUuid(docUuid);
+            log.warn("Документ '{}' был удалён из базы т.к. у него не осталось страниц.", docUuid);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public ResponseEntity<HttpStatus> deleteAllDataBySheetName(String sheetName, ZonedDateTime date) {
-        return parsedRowService.deleteAllDataBySheetName(sheetName, date);
+    public ResponseEntity<HttpStatus> deleteAllDataByDocUuid(UUID docUuid) {
+        boolean isExists = storyRepository.existsByUuid(docUuid);
+        if (!isExists) {
+            log.info("Не найден на удаление документ с uuid '{}'", docUuid);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        log.warn("Удаление документа '{}'...", docUuid);
+        storyRepository.deleteByUuid(docUuid);
+
+        log.warn("Удаление страниц документа '{}'...", docUuid);
+        sheetRepository.deleteAllByDocUuid(docUuid);
+
+        log.warn("Документ '{}' был удалён из базы.", docUuid);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Transactional(readOnly = true)
     public Page<FileStory> findAllDocuments(int count, int page) {
         return storyRepository.findAll(Pageable.ofSize(count).withPage(page));
     }
 
+    @Transactional(readOnly = true)
     public Page<SheetDTO> findAllSheets(int count, int page) {
         Page<SheetDTO> found = sheetMapper.toDto(sheetRepository.findAll(Pageable.ofSize(count).withPage(page)));
         found.forEach(s -> s.setItems(null));
         return found;
     }
 
-//    public void storeFile(MultipartFile file) {
-//        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//        body.add("file", file.getResource());
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-//
-//        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-//
-//        MultiFile response = restTemplate.exchange(
-//                props.getStorageUrl(),
-//                HttpMethod.POST,
-//                requestEntity,
-//                MultiFile.class).getBody();
-//    }
-
-//    public void deleteFile(String file) {
-//        Optional<UserRegisterDTO> user = userService.findFirstByPartnerId(partnerDto.getPartnerId());
-//        if (user.isPresent()) {
-//            boolean f = false;
-//            Set<MultiFile> resFiles = new HashSet<>();
-//            for (MultiFileDTO multiFileDTO : user.get().getFiles()) {
-//                if (multiFileDTO.getUri().equals(file)) {
-//                    f = true;
-//                } else {
-//                    resFiles.add(fileMapper.toEntity(multiFileDTO));
-//                }
-//            }
-//            if (!f) {
-//                return ResponseEntity.ok().build();
-//            }
-//            UserRegister userRegister = userMapper.toEntity(user.get());
-//            userRegister.setFiles(resFiles);
-//            userService.saveUser(userRegister);
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setBearerAuth(getThoseAccessToken());
-//            HttpEntity<String> entity = new HttpEntity<>(headers);
-//            String url = props.getStorageUrl() + "?file=" + file;
-//
-//            log.info("Попытка удалить из хранилища файл '{}'. Источник: {}", file, source);
-//            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
-//            if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-//                if (source != null && source.equals("front")) {
-//                    log.info("Удаление файла '{}' из CMS...", file);
-//                    cmsStorageService.deleteCmsFile(file);
-//                }
-//                log.info("Удаление файла '{}' успешно.", file);
-//                return ResponseEntity.ok().build();
-//            } else {
-//                throw new GlobalServiceException(ErrorMessages.FILE_NOT_DELETE);
-//            }
-//        } else {
-//            throw new GlobalServiceException(ErrorMessages.LOGIN_CHECK_DB_USER_ABSENT);
-//        }
-//    }
-
-//    public ResponseEntity<HttpStatus> deleteFileWOPC(String file) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setBearerAuth(getThoseAccessToken());
-//
-//        log.info("Попытка удалить из хранилища файл '{}'. Источник: {}", file, source);
-//        ResponseEntity<String> response = restTemplate.exchange(
-//                props.getStorageUrl() + "?file=" + file,
-//                HttpMethod.DELETE,
-//                new HttpEntity<>(headers),
-//                String.class);
-//        if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
-//            if (source != null && source.equals("front")) {
-//                log.info("Удаление файла '{}' из CMS...", file);
-//                cmsStorageService.deleteCmsFile(file);
-//            }
-//            log.info("Удаление файла '{}' успешно.", file);
-//            return ResponseEntity.ok().build();
-//        } else {
-//            throw new GlobalServiceException(ErrorMessages.FILE_NOT_DELETE);
-//        }
-//    }
-
-//    public ResponseEntity<byte[]> getFile(String file) {
-//        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("someStorageUrl").queryParam("file", file);
-//        log.info("Запрос из хранилища файла '{}'", file);
-//        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, null, byte[].class);
-//    }
-
-//    private String getThoseAccessToken() throws JsonProcessingException {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.set("Authorization", props.getStorageAuthorization());
-//
-//        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(props.getStorageTokenUrl())
-//                .queryParam("client_id", props.getStorageClientId())
-//                .queryParam("secret", props.getStorageSecret())
-//                .queryParam("username", props.getStorageUsername())
-//                .queryParam("password", props.getStoragePassword())
-//                .queryParam("grant_type", props.getStorageGrantType());
-//
-//        log.info("Попытка получить AToken для удаления...");
-//        ResponseEntity<String> response = restTemplate.exchange(
-//                builder.toUriString(),
-//                HttpMethod.POST,
-//                new HttpEntity<>(null, headers),
-//                String.class);
-//        log.debug(response.getBody());
-//        return mapper.readTree(response.getBody()).get("access_token").asText();
-//    }
+    // Метод для удаления блочных данных, таких как json или csv:
+    public void deleteAllDataBySheetName(String sheetName) {
+        log.warn("Удаление блока данных '{}'...", sheetName);
+        sheetRepository.deleteAllBySheetNameLike(sheetName + "%");
+        log.warn("Блок '{}' был удалён из базы.", sheetName);
+    }
 }

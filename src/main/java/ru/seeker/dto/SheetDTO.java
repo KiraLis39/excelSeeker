@@ -22,13 +22,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SheetDTO {
 
-    @JsonIgnore
     @Builder.Default
     private UUID uuid = UUID.randomUUID();
 
     @Comment("Имя документа-источника данных")
     @JsonProperty("docName")
     private String docName;
+
+    @Comment("UUID документа-источника данных")
+    @JsonProperty("docUuid")
+    private UUID docUuid;
 
     @Comment("Страница документа-источника данных")
     @JsonProperty("sheetName")

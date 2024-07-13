@@ -32,7 +32,7 @@ import ru.seeker.utils.ExceptionUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -54,7 +54,7 @@ public class FileController {
             @RequestParam("file") MultipartFile file,
             HttpServletRequest request
     ) {
-        if (!authService.isAuthUser(request.getRemoteHost()) && !authService.isAdmin(request)) {
+        if (!authService.isAuthUser(request)) {
             log.info("Доступ пользователю {} запрещён!", request.getRemoteHost());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -79,22 +79,16 @@ public class FileController {
     @ApiResponse(responseCode = "200", description = "Файл успешно удалён", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
     @PostMapping("/delete/document")
-    public ResponseEntity<HttpStatus> deleteFile(
-            @RequestParam String fileName,
-            @RequestParam String docDate
-    ) {
-        return storageService.deleteAllDataByDocName(fileName, ZonedDateTime.parse(docDate));
+    public ResponseEntity<HttpStatus> deleteFile(@RequestParam UUID docUuid) {
+        return storageService.deleteAllDataByDocUuid(docUuid);
     }
 
     @Operation(summary = "Удаление страниц", description = "Удаление страниц")
     @ApiResponse(responseCode = "200", description = "Страница успешно удалена", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
     @PostMapping("/delete/sheet")
-    public ResponseEntity<HttpStatus> deleteSheet(
-            @RequestParam String sheetName,
-            @RequestParam String docDate
-    ) {
-        return storageService.deleteAllDataBySheetName(sheetName, ZonedDateTime.parse(docDate));
+    public ResponseEntity<HttpStatus> deleteSheet(@RequestParam UUID sheetUuid) {
+        return storageService.deleteAllDataBySheetUuid(sheetUuid);
     }
 
     @Operation(summary = "Список загруженных документов", description = "Получить список загруженных ранее документов")

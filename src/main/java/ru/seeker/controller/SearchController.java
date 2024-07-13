@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seeker.dto.WebAdaptDTO;
 import ru.seeker.service.AuthService;
-import ru.seeker.service.ParsedRowService;
+import ru.seeker.service.ParseService;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 @Tag(name = "Работа с данными", description = "Работа с данными")
 @RequestMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
 public class SearchController {
-    private final ParsedRowService rowService;
+    private final ParseService rowService;
     private final AuthService authService;
 
     @Operation(summary = "Поиск данных по запросу", description = "Поиск данных по запросу из поисковой строки сайта")
@@ -38,7 +38,7 @@ public class SearchController {
             @RequestParam(value = "count", defaultValue = "10", required = false) int count,
             HttpServletRequest request
     ) throws AuthenticationException {
-        if (authService.isAuthUser(request.getRemoteHost()) || authService.isAdmin(request)) {
+        if (authService.isAuthUser(request)) {
             return rowService.findAllByText(word, count, page);
         }
         throw new AuthenticationException("Доступ ip %s запрещён!".formatted(request.getRemoteAddr()));

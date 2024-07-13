@@ -22,15 +22,19 @@ import ru.seeker.entity.FileStory;
 import ru.seeker.enums.ExcelTableHeaders;
 import ru.seeker.exceptions.GlobalServiceException;
 import ru.seeker.exceptions.root.ErrorMessages;
+import ru.seeker.mapper.SheetMapper;
 import ru.seeker.repository.FilesStoryRepository;
+import ru.seeker.repository.SheetRepository;
 import ru.seeker.utils.ExceptionUtils;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -41,8 +45,10 @@ public class ExcelService {
     private static final int MAX_ROWS_TO_SAVE_LIMIT = 10_000;
 
     private final ApplicationProperties props;
-    private final ParsedRowService parsedRowService;
+    private final ParseService parseService;
     private final FilesStoryRepository filesStoryRepository;
+    private final SheetMapper sheetMapper;
+    private final SheetRepository sheetRepository;
 
     public ResponseEntity<HttpStatus> parseExcel(MultipartFile file) throws IOException, BiffException {
         String filename = file.getOriginalFilename();
@@ -50,7 +56,7 @@ public class ExcelService {
             throw new GlobalServiceException(ErrorMessages.WRONG_DOCUMENT_TYPE, filename);
         }
 
-        if (filesStoryRepository.findByDocNameAndDocSize(filename, file.getSize()).isPresent()) {
+        if (filesStoryRepository.findByDocNameAndDocSize(filename.replaceAll(" ", " "), file.getSize()).isPresent()) {
             throw new GlobalServiceException(ErrorMessages.WAS_LOADED_ALREADY);
         }
 
@@ -77,6 +83,7 @@ public class ExcelService {
             log.info("Загружаемая таблица {} имеет {} страниц.", file.getOriginalFilename(), workbook.getNumberOfSheets());
 
             int rowsCount = 0;
+            final List<SheetDTO> sheets = new ArrayList<>();
             for (org.apache.poi.ss.usermodel.Sheet sheet : workbook) {
                 log.info("Читаем страницу '{}'...", sheet.getSheetName());
 
@@ -105,10 +112,11 @@ public class ExcelService {
                 }
 
 
-                SheetDTO sheetDto = SheetDTO.builder()
-                        .docName(file.getOriginalFilename())
+                sheets.add(SheetDTO.builder()
+                        .docName(file.getOriginalFilename() != null
+                                ? file.getOriginalFilename().replaceAll(" ", " ") : null)
                         .sheetName(sheet.getSheetName().trim())
-                        .build();
+                        .build());
                 Iterator<org.apache.poi.ss.usermodel.Row> rowterator = sheet.rowIterator();
                 rowterator.next(); // пропуск заголовка.
                 while (rowterator.hasNext()) {
@@ -251,26 +259,29 @@ public class ExcelService {
                     // добавляем в мапу:
                     boolean isUseful = itemDto.isUseful();
                     if (isUseful) {
-                        sheetDto.addItem(itemDto);
+                        sheets.getLast().addItem(itemDto);
                     }
                 }
 
-                if (sheetDto.getItems().isEmpty()) {
+                if (sheets.getLast().getItems().isEmpty()) {
                     log.warn("Ничего не распарсено с листа {}?..", sheet.getSheetName());
                 } else {
-                    rowsCount += sheetDto.getItems().size();
-                    save(sheetDto);
+                    rowsCount += sheets.getLast().getItems().size();
+                    // save(sheetDto);
                 }
             }
 
             if (rowsCount > 0) {
                 log.info("Распарсено строк: {}. Создание записи о документе...", rowsCount);
-                filesStoryRepository.saveAndFlush(FileStory.builder()
-                        .docName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : null)
+                FileStory savedFile = filesStoryRepository.saveAndFlush(FileStory.builder()
+                        .docName(file.getOriginalFilename() != null
+                                ? file.getOriginalFilename().replaceAll(" ", " ").trim() : null)
                         .docSize(file.getSize())
                         .sheetsCount(workbook.getNumberOfSheets())
                         .rowsCount(rowsCount)
                         .build());
+                sheets.forEach(dto -> dto.setDocUuid(savedFile.getUuid()));
+                saveAll(sheets);
             } else {
                 log.warn("Ничего не распарсено из документа {}?..", file.getOriginalFilename());
             }
@@ -285,6 +296,7 @@ public class ExcelService {
 
             int shCount = 0;
             int rowsCount = 0;
+            final List<SheetDTO> sheets = new ArrayList<>();
             for (Sheet sheet : workbook.getSheets()) {
                 log.info("Читаем страницу '{}'...", sheet.getName());
 
@@ -308,9 +320,10 @@ public class ExcelService {
                     column++;
                 }
 
-                SheetDTO sheetDto = SheetDTO.builder()
-                        .docName(file.getOriginalFilename())
-                        .sheetName(sheet.getName().trim()).build();
+                sheets.add(SheetDTO.builder()
+                        .docName(file.getOriginalFilename() != null
+                                ? file.getOriginalFilename().replaceAll(" ", " ") : null)
+                        .sheetName(sheet.getName().trim()).build());
 
                 int rCount = 0;
                 for (int i = 1; i < sheet.getRows(); i++) {
@@ -472,7 +485,7 @@ public class ExcelService {
                     // добавляем в мапу:
                     boolean isUseful = itemDto.isUseful();
                     if (isUseful) {
-                        sheetDto.addItem(itemDto);
+                        sheets.getLast().addItem(itemDto);
                         rCount++;
                     }
                 }
@@ -480,19 +493,22 @@ public class ExcelService {
 
                 if (rCount > 0) {
                     // сохранение строк страницы в БД (сли в ней были строки):
-                    save(sheetDto);
+                    // save(sheetDto);
                     rowsCount += rCount;
                 }
                 shCount++;
             }
             workbook.close();
 
-            filesStoryRepository.saveAndFlush(FileStory.builder()
-                    .docName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : null)
+            FileStory savedFile = filesStoryRepository.saveAndFlush(FileStory.builder()
+                    .docName(file.getOriginalFilename() != null
+                            ? file.getOriginalFilename().replaceAll(" ", " ").trim() : null)
                     .docSize(file.getSize())
                     .sheetsCount(shCount)
                     .rowsCount(rowsCount)
                     .build());
+            sheets.forEach(dto -> dto.setDocUuid(savedFile.getUuid()));
+            saveAll(sheets);
         }
 
     }
@@ -501,7 +517,11 @@ public class ExcelService {
         return !cell.isHidden() && (cell.getType().equals(jxl.CellType.LABEL) || cell.getType().equals(jxl.CellType.NUMBER));
     }
 
-    private void save(SheetDTO sheet) {
-        parsedRowService.save(sheet);
+    private void saveAll(List<SheetDTO> toSave) {
+        log.info("Сохранение в БД sheets '{}'...", toSave.size());
+
+        List<ru.seeker.entity.Sheet> ents = sheetMapper.toEntity(toSave);
+        ents.forEach(sheet -> sheet.getItems().forEach(item -> item.setSheet(sheet)));
+        sheetRepository.saveAll(ents);
     }
 }

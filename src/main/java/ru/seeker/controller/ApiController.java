@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seeker.exceptions.GlobalServiceException;
 import ru.seeker.exceptions.root.ErrorMessages;
-import ru.seeker.service.CsvService;
-import ru.seeker.service.ParsedRowService;
+import ru.seeker.service.ParseService;
 
 @Slf4j
 @RestController
@@ -23,16 +22,15 @@ import ru.seeker.service.ParsedRowService;
 @Tag(name = "Парсинг API raw-data", description = "Работа с raw-данными поставщиков")
 @RequestMapping(value = "/data", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiController {
-    private final ParsedRowService rowService;
-    private final CsvService csvService;
+    private final ParseService parseService;
 
-    @Operation(summary = "Получить JSON от ПТК", description = "Получить новый файл JSON от ПТК")
+    @Operation(summary = "Получить JSON от ПТК", description = "Получить новый файл JSON от ПТК", hidden = true)
     @ApiResponse(responseCode = "200", description = "Данные успешно обработаны")
     @ApiResponse(responseCode = "400", description = "Описание ошибки согласно документации")
     @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
     @GetMapping(path = "/get_ptk_json") //, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<String> getPtkJson() {
-        return rowService.getPtkJsonData();
+        return parseService.getPtkJsonData();
     }
 
     @Operation(summary = "Автозагрузка JSON от ПТК", description = "Загрузка данных ПТК в БД")
@@ -42,7 +40,7 @@ public class ApiController {
     @GetMapping(path = "/load_ptk_json") //, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<HttpStatus> loadPtkJson() {
         try {
-            return rowService.reloadPtkData();
+            return parseService.reloadPtkData();
         } catch (JsonProcessingException json) {
             throw new GlobalServiceException(ErrorMessages.JSON_PARSE_ERROR, json.getMessage());
         }
@@ -54,6 +52,6 @@ public class ApiController {
     @ApiResponse(responseCode = "500", description = "Другая/неожиданная ошибка сервера")
     @GetMapping(path = "/load_tor_csv") //, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<HttpStatus> loadTorCsv() {
-        return csvService.loadAndParse();
+        return parseService.reloadTorData();
     }
 }

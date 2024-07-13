@@ -1,6 +1,5 @@
 package ru.seeker.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +28,6 @@ import java.util.UUID;
 public class FileStory {
 
     @Id
-    @JsonIgnore
     @Column(name = "uuid", nullable = false)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID uuid;
