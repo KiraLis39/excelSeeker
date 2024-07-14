@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class ParseService {
-    protected final String TOR_REMOVE_OLD_DATA_PREFIX = "ТОР ";
-    protected final String PTK_REMOVE_OLD_DATA_PREFIX = "ПТК сварка ";
+    private final String TOR_REMOVE_OLD_DATA_PREFIX = "ТОР ";
+    private final String PTK_REMOVE_OLD_DATA_PREFIX = "ПТК сварка ";
     private final SheetRepository sheetRepository;
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;

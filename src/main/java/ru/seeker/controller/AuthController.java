@@ -38,6 +38,21 @@ public class AuthController {
         }
     }
 
+    @Operation(description = "Смена пароля", hidden = true)
+    @GetMapping("/change")
+    public ResponseEntity<String> changePassword(
+            @RequestParam("old") String oldPass,
+            @RequestParam("new") String newPass,
+            HttpServletRequest request
+    ) throws AuthenticationException {
+        if (authService.changePassword(null, oldPass, newPass, request)) {
+            return ResponseEntity.accepted().build();
+        } else {
+            log.info("Неудачная попытка сменить пароль c {}", request.getRemoteAddr());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
     @Operation(description = "Проверить, был ли логин по IP", hidden = true)
     @GetMapping("/has_open_session")
     public ResponseEntity<String> hasOpenSession(HttpServletRequest request) {

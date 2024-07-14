@@ -4,7 +4,7 @@ logging:
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
 
 server:
-  port: 8080
+  port: 8443
   shutdown: graceful
   servlet:
     context-path: ${SERVER_SERVLET_CONTEXT_PATH:/seeker}
@@ -13,6 +13,18 @@ server:
   error:
     whitelabel:
       enabled: false
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.jks
+#    key-store-type: JKS
+#    key-store-type: RSA
+    key-store-type: PKCS12
+    key-store-password: stp24!Q12_s
+    key-alias: tomcat
+#    client-auth: none
+    protocol: TLS
+#    trust-store: classpath:keystore.jks
+#    trust-store-password: stp24!Q12_s
 
 spring:
   main:
@@ -78,7 +90,6 @@ app:
   poiZipSecureMaxFileCount: ${POI_MAX_FILE_COUNT:1500}
   #  Сколько ячеек минимум должно быть не пустыми в строке для сохранения её в БД:
   minFilledCellRowSave: ${MIN_FILLED_CELL_ROW_SAVE:2}
-  correctWebPassword: ${CORRECT_WEB_PASSWORD:333}
   admin-ip: ${ADMIN_IP:0:0:0:0:0:0:0:1}
 
 springdoc:
