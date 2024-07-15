@@ -47,11 +47,12 @@ public interface ItemRepository extends JpaRepository<Item, UUID>, JpaSpecificat
                 FROM public.items itm LEFT JOIN public.sheets sts ON itm.sheet = sts.uuid
                 ORDER BY itm.sku, sts.parsed_date DESC) t
             WHERE LOWER(title) like CONCAT('%', :#{#text}, '%')
-                OR LOWER(description) like CONCAT('%', :#{#text}, '%')
                 OR LOWER(model) like CONCAT('%', :#{#text}, '%')
-                OR LOWER(excerpt) like CONCAT('%', :#{#text}, '%')
-                OR LOWER(category) like CONCAT('%', :#{#text}, '%')
                 OR LOWER(sku) like CONCAT('%', :#{#text}, '%')""",
             nativeQuery = true)
     Page<Item> findAllByText(@Param("text") String text, Pageable page);
+
+    // OR LOWER(description) like CONCAT('%', :#{#text}, '%')
+    // OR LOWER(excerpt) like CONCAT('%', :#{#text}, '%')
+    // OR LOWER(category) like CONCAT('%', :#{#text}, '%')
 }

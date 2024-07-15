@@ -4,7 +4,7 @@ logging:
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
 
 server:
-  port: 8443
+  port: 8080 # 8443 for TLS
   shutdown: graceful
   servlet:
     context-path: ${SERVER_SERVLET_CONTEXT_PATH:/seeker}
@@ -13,18 +13,22 @@ server:
   error:
     whitelabel:
       enabled: false
-  ssl:
-    enabled: true
-    key-store: classpath:keystore.jks
-#    key-store-type: JKS
-#    key-store-type: RSA
-    key-store-type: PKCS12
-    key-store-password: stp24!Q12_s
-    key-alias: tomcat
+#  ssl:
+#    enabled: true
+#    protocol: TLS
+#    enabled-protocols: TLSv1.3
+#    ciphers: TLS_AES_128_GCM_SHA256
 #    client-auth: none
-    protocol: TLS
-#    trust-store: classpath:keystore.jks
-#    trust-store-password: stp24!Q12_s
+#
+#    key-store: seekerServerKey.jks
+#    key-store-password: keyPassWpr24
+#    key-store-type: PKCS12
+##    key-alias: seekerServerKey
+#    key-password: keyPassWpr24
+#
+#    trust-store: servertruststore.jks
+#    trust-store-password: keyPassWpr24
+#    trust-store-type: PKCS12
 
 spring:
   main:
@@ -34,7 +38,7 @@ spring:
 
   application:
     name: ExcelSeekerService
-    version: 0.1.7
+    version: 1.0.0
 
   profiles:
     active: dev
