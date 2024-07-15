@@ -3,7 +3,6 @@ package ru.seeker.service;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.auth.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -11,6 +10,7 @@ import ru.seeker.config.ApplicationProperties;
 import ru.seeker.config.Constant;
 import ru.seeker.repository.PassRepository;
 
+import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
