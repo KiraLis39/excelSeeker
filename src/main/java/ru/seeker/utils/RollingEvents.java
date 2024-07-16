@@ -22,7 +22,7 @@ public class RollingEvents {
     private final ParseService parseService;
 
     @Async
-    @Scheduled(initialDelay = 15_000, fixedRate = Constant.ONCE_PER_DAY_HOURS * 60 * 60 * 1_000)
+    @Scheduled(initialDelay = 10_000, fixedRate = Constant.ONCE_PER_DAY_HOURS * 60 * 60 * 1_000)
     public void autoSwitchOffOldSurveys() {
         try {
             log.info("Авто-загрузка csv номенклатуры из 'Тор'...");
@@ -34,7 +34,7 @@ public class RollingEvents {
     }
 
     @Async
-    @Scheduled(initialDelay = 30_000, fixedRate = Constant.ONCE_PER_DAY_HOURS * 60 * 60 * 1_000)
+    @Scheduled(initialDelay = 20_000, fixedRate = Constant.ONCE_PER_DAY_HOURS * 60 * 60 * 1_000)
     public void fillLostRespondentsRegisteredDate() {
         try {
             log.info("Авто-загрузка json номенклатуры из 'Сварка ПТК'...");

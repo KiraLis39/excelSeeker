@@ -77,10 +77,11 @@ public class ItemDTO {
         boolean hasModel = model != null && !model.isBlank();
         boolean hasExcerpt = excerpt != null && !excerpt.isBlank();
         boolean hasNomenclature = title != null && !title.isBlank();
-        boolean hasCost = price > 0 || opt > 0;
+        boolean hasRozn = price > 0;
+        boolean hasOpt = opt > 0;
         boolean hasStock = stock > 0 || stock_spb - reserve_spb > 0 || stock_msk - reserve_msk > 0;
         boolean hasDescription = description != null && !description.isBlank();
 
-        return hasNomenclature && (hasModel || hasArticle) && (hasCost || hasDescription || hasExcerpt || hasStock);
+        return hasNomenclature && (hasModel || hasArticle || hasOpt) && (hasRozn || hasDescription || hasExcerpt || hasStock);
     }
 }

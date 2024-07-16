@@ -1,6 +1,7 @@
 logging:
   level:
     root: INFO
+    ru.seeker.service.ExcelService: INFO
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
 
 server:
@@ -33,12 +34,12 @@ server:
 spring:
   main:
     allow-circular-references: false
-    lazy-initialization: false # для dev - false, для prod - true.
+    lazy-initialization: true # для dev - false, для prod - true.
     allow-bean-definition-overriding: false
 
   application:
     name: ExcelSeekerService
-    version: 1.0.1
+    version: 1.0.3
 
   profiles:
     active: dev
@@ -75,11 +76,6 @@ spring:
           # autocommit: true // не рекомендуется
           pool_size: 10
         dialect: org.hibernate.dialect.PostgreSQL10Dialect
-
-  data:
-    elasticsearch:
-      repositories:
-        enabled: true
 
   servlet:
     multipart:

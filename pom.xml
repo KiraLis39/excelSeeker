@@ -6,7 +6,7 @@
 
     <groupId>ru.seeker</groupId>
     <artifactId>seeker</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
     <name>seeker-service</name>
     <description>Excel seeker service on Spring Boot</description>
@@ -51,10 +51,6 @@
         </dependency>
 
         <!-- db -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -182,13 +178,6 @@
 
     </dependencies>
 
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>local_store</id>-->
-<!--            <url>file:${project.basedir}/lib</url>-->
-<!--        </repository>-->
-<!--    </repositories>-->
-
     <build>
         <finalName>app</finalName>
         <plugins>
@@ -271,16 +260,4 @@
             </plugin>
         </plugins>
     </build>
-
-<!--    <profiles>-->
-<!--        <profile>-->
-<!--            <id>prod</id>-->
-<!--            <properties>-->
-<!--                <activatedProperties>prod</activatedProperties>-->
-<!--            </properties>-->
-<!--            <activation>-->
-<!--                <activeByDefault>false</activeByDefault>-->
-<!--            </activation>-->
-<!--        </profile>-->
-<!--    </profiles>-->
 </project>

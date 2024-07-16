@@ -62,19 +62,19 @@ public class ExcelService {
 
         log.info("Загрузка файла '{}' ({} байт)...", filename, file.getSize());
         if (filename.endsWith(Constant.EXCEL_REPORT_EXTENSION)) {
-            parseTable(file);
+            log.info("Таблица {} была успешно распарсена и сохранена в БД.", file.getOriginalFilename());
+            return parseTable(file);
         } else if (filename.endsWith(Constant.OLD_EXCEL_REPORT_EXTENSION)) {
-            parseOldTable(file);
+            log.info("Таблица {} была успешно распарсена и сохранена в БД.", file.getOriginalFilename());
+            return parseOldTable(file);
         } else {
             throw new GlobalServiceException(ErrorMessages.WRONG_DOCUMENT_TYPE, file.getOriginalFilename());
         }
 
-        log.info("Таблица {} была успешно распарсена и сохранена в БД.", file.getOriginalFilename());
-        return ResponseEntity.ok().build();
     }
 
     // use XSSFWorkbook, XSSFSheet, XSSFRow, XSSFCell
-    private void parseTable(MultipartFile file) throws IOException {
+    private ResponseEntity<HttpStatus> parseTable(MultipartFile file) throws IOException {
         // Открываем таблицу на чтение:
         try (
                 InputStream is = new BufferedInputStream(file.getInputStream());
@@ -136,7 +136,7 @@ public class ExcelService {
                                 log.warn("Неопознанный тип ячейки! {}", cell.getCellType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (001): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -147,7 +147,7 @@ public class ExcelService {
                             itemDto.setModel(nextRow.getCell(headerMap.get(head),
                                     Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue().trim());
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (002): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -159,7 +159,7 @@ public class ExcelService {
                                             Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue()
                                     .replaceAll("\\s{2,}", " ").trim());
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (003): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -170,7 +170,7 @@ public class ExcelService {
                             itemDto.setDescription(parseService.cleanDescription(nextRow.getCell(headerMap.get(head),
                                             Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue()));
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (004): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -195,7 +195,7 @@ public class ExcelService {
                                 log.warn("Неопознанный тип ячейки! {}", cell.getCellType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (005): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -227,7 +227,7 @@ public class ExcelService {
                                 log.warn("Неопознанный тип ячейки! {}", cell.getCellType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (006): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -250,7 +250,7 @@ public class ExcelService {
                                 log.warn("Неопознанный тип ячейки! {}", cell.getCellType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (007): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -263,7 +263,7 @@ public class ExcelService {
                                 itemDto.setLink(cell.getHyperlink().getAddress());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (008): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -295,12 +295,15 @@ public class ExcelService {
                 saveAll(sheets);
             } else {
                 log.warn("Ничего не распарсено из документа {}?..", file.getOriginalFilename());
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
             }
         }
+
+        return ResponseEntity.ok().build();
     }
 
     // use HSSFWorkbook, HSSFSheet, HSSFRow, HSSFCell
-    private void parseOldTable(MultipartFile file) throws IOException, BiffException {
+    private ResponseEntity<HttpStatus> parseOldTable(MultipartFile file) throws IOException, BiffException {
         try (InputStream is = new BufferedInputStream(file.getInputStream())) {
             Workbook workbook = Workbook.getWorkbook(is);
             log.info("Загружаемая таблица {} имеет {} страниц.", file.getOriginalFilename(), workbook.getNumberOfSheets());
@@ -349,7 +352,7 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.артикул)) {
                         ExcelTableHeaders head = ExcelTableHeaders.артикул;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                            if (isKnownType(currentRowCells, headerMap.get(head))) {
                                 itemDto.setSku(currentRowCells[headerMap.get(head)].getContents());
                             } else if (!currentRowCells[headerMap.get(head)]
                                     .getType().equals(jxl.CellType.EMPTY)
@@ -359,7 +362,7 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (009): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -367,7 +370,7 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.модель)) {
                         ExcelTableHeaders head = ExcelTableHeaders.модель;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                            if (isKnownType(currentRowCells, headerMap.get(head))) {
                                 itemDto.setModel(currentRowCells[headerMap.get(head)].getContents());
                             } else if (!currentRowCells[headerMap.get(head)]
                                     .getType().equals(jxl.CellType.EMPTY)
@@ -377,7 +380,7 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (010): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -385,7 +388,7 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.номенклатура)) {
                         ExcelTableHeaders head = ExcelTableHeaders.номенклатура;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                            if (isKnownType(currentRowCells, headerMap.get(head))) {
                                 itemDto.setTitle(currentRowCells[headerMap.get(head)].getContents()
                                         .replaceAll("\\s{2,}", " ").trim());
                             } else if (!currentRowCells[headerMap.get(head)]
@@ -396,7 +399,7 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (011): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -404,7 +407,7 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.описание)) {
                         ExcelTableHeaders head = ExcelTableHeaders.описание;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                            if (isKnownType(currentRowCells, headerMap.get(head))) {
                                 itemDto.setDescription(
                                         parseService.cleanDescription(currentRowCells[headerMap.get(head)].getContents()));
                             } else if (!currentRowCells[headerMap.get(head)].getType().equals(jxl.CellType.EMPTY)
@@ -413,7 +416,7 @@ public class ExcelService {
                                 log.warn("Неопознанный тип ячейки! {}", currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (012): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -421,14 +424,19 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.розн)) {
                         ExcelTableHeaders head = ExcelTableHeaders.розн;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])
+                            if (isKnownType(currentRowCells, headerMap.get(head))
                                     || currentRowCells[headerMap.get(head)]
                                     .getType().equals(jxl.CellType.NUMBER_FORMULA)
                             ) {
-                                itemDto.setPrice(Double.parseDouble(
-                                        currentRowCells[headerMap.get(head)].getContents()
-                                                .replaceAll(",", ".")
-                                                .replaceAll("[ \\s]", "").trim()));
+                                String value = currentRowCells[headerMap.get(head)].getContents()
+                                        .replace(",", ".")
+                                        .replaceAll("[ \\s]", "")
+                                        .trim();
+                                if (value.split("\\.").length > 2) {
+                                    value = fixMultiPoint(value);
+                                }
+                                log.debug("Парсим розничную цену: {}", value);
+                                itemDto.setPrice(Double.parseDouble(value));
                             } else if (!currentRowCells[headerMap.get(head)]
                                     .getType().equals(jxl.CellType.EMPTY)
                                     && !currentRowCells[headerMap.get(head)].isHidden()
@@ -437,7 +445,10 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (013): {} in {}:{} line {}",
+                                    ExceptionUtils.getFullExceptionMessage(e),
+                                    file.getOriginalFilename(),
+                                    sheet.getName(), i + 1);
                         }
                     }
 
@@ -445,13 +456,18 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.опт)) {
                         ExcelTableHeaders head = ExcelTableHeaders.опт;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])
+                            if (isKnownType(currentRowCells, headerMap.get(head))
                                     || currentRowCells[headerMap.get(head)].getType().equals(jxl.CellType.NUMBER_FORMULA)
                             ) {
-                                itemDto.setOpt(Double.parseDouble(
-                                        currentRowCells[headerMap.get(head)].getContents()
-                                                .replaceAll(",", ".")
-                                                .replaceAll("[ \\s]", "").trim()));
+                                String value = currentRowCells[headerMap.get(head)].getContents()
+                                        .replace(",", ".")
+                                        .replaceAll("[ \\s]", "")
+                                        .trim();
+                                if (value.split("\\.").length > 2) {
+                                    value = fixMultiPoint(value);
+                                }
+                                log.debug("Парсим оптовую цену: {}", value);
+                                itemDto.setOpt(Double.parseDouble(value));
                             } else if (!currentRowCells[headerMap.get(head)]
                                     .getType().equals(jxl.CellType.EMPTY)
                                     && !currentRowCells[headerMap.get(head)].isHidden()
@@ -460,7 +476,10 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (014): {} in {}:{} line {}",
+                                    ExceptionUtils.getFullExceptionMessage(e),
+                                    file.getOriginalFilename(),
+                                    sheet.getName(), i + 1);
                         }
                     }
 
@@ -468,7 +487,7 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.остаток)) {
                         ExcelTableHeaders head = ExcelTableHeaders.остаток;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                            if (isKnownType(currentRowCells, headerMap.get(head))) {
                                 try {
                                     itemDto.setStock(Integer.parseInt(
                                             currentRowCells[headerMap.get(head)].getContents()
@@ -488,7 +507,7 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (015): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -496,7 +515,7 @@ public class ExcelService {
                     if (headerMap.containsKey(ExcelTableHeaders.ссылка)) {
                         ExcelTableHeaders head = ExcelTableHeaders.ссылка;
                         try {
-                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                            if (isKnownType(currentRowCells, headerMap.get(head))) {
                                 itemDto.setLink(currentRowCells[headerMap.get(head)].getContents());
                             } else if (!currentRowCells[headerMap.get(head)]
                                     .getType().equals(jxl.CellType.EMPTY)
@@ -506,7 +525,7 @@ public class ExcelService {
                                         currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
-                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                            log.error("Fix it (016): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }
                     }
 
@@ -528,21 +547,42 @@ public class ExcelService {
             }
             workbook.close();
 
-            FileStory savedFile = filesStoryRepository.saveAndFlush(FileStory.builder()
-                    .docName(file.getOriginalFilename() != null
-                            ? file.getOriginalFilename().replaceAll(" ", " ").trim() : null)
-                    .docSize(file.getSize())
-                    .sheetsCount(shCount)
-                    .rowsCount(rowsCount)
-                    .build());
-            sheets.forEach(dto -> dto.setDocUuid(savedFile.getUuid()));
-            saveAll(sheets);
+            if (rowsCount > 0) {
+                FileStory savedFile = filesStoryRepository.saveAndFlush(FileStory.builder()
+                        .docName(file.getOriginalFilename() != null
+                                ? file.getOriginalFilename().replaceAll(" ", " ").trim() : null)
+                        .docSize(file.getSize())
+                        .sheetsCount(shCount)
+                        .rowsCount(rowsCount)
+                        .build());
+                sheets.forEach(dto -> dto.setDocUuid(savedFile.getUuid()));
+                saveAll(sheets);
+            } else {
+                log.warn("Ничего не распарсено из документа {}?..", file.getOriginalFilename());
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+            }
         }
 
+        return ResponseEntity.ok().build();
     }
 
-    private boolean isKnownType(jxl.Cell cell) {
-        return !cell.isHidden() && (cell.getType().equals(jxl.CellType.LABEL) || cell.getType().equals(jxl.CellType.NUMBER));
+    private String fixMultiPoint(String value) {
+        String[] valueArr = value.split("\\.");
+        value = "";
+        for (int i1 = 0; i1 < valueArr.length - 1; i1++) {
+            value += valueArr[i1];
+        }
+        value += "." + valueArr[valueArr.length - 1];
+        return value;
+    }
+
+    private boolean isKnownType(jxl.Cell[] cells, int cellIndex) {
+        if (cells.length <= cellIndex) {
+            return false;
+        }
+        return !cells[cellIndex].isHidden()
+                && (cells[cellIndex].getType().equals(jxl.CellType.LABEL)
+                || cells[cellIndex].getType().equals(jxl.CellType.NUMBER));
     }
 
     private void saveAll(List<SheetDTO> toSave) {
