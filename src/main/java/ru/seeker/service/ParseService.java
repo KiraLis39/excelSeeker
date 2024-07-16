@@ -84,13 +84,27 @@ public class ParseService {
                 .docName("ПТК сварка %s.%s.%s".formatted(now.getDayOfMonth(), now.getMonth(), now.getYear()))
                 .sheetName("ПТК сварка %s.%s.%s".formatted(now.getDayOfMonth(), now.getMonth(), now.getYear()))
                 .build());
-        ents.forEach(item -> item.setSheet(sh));
+        ents.forEach(item -> {
+            item.setSheet(sh);
+            item.setDescription(cleanDescription(item.getDescription()));
+        });
         List<Item> saved = itemRepository.saveAll(ents);
         sh.setItems(saved);
         sheetRepository.saveAndFlush(sh);
 
         log.info("Данные из 'ptk-svarka.ru' сохранены в количестве {} шт.", arr.size());
         return ResponseEntity.ok().build();
+    }
+
+    public String cleanDescription(String description) {
+        description = description == null || description.isBlank() ? null : description
+                .replace("&nbsp;", "")
+                .replace("Shorts видео", "")
+                .replaceAll("<[^>]*>", "") // все теги.
+                .replaceAll(" ", " ")
+                .replaceAll("\\s{2,}", " ") //  и более пробелов подряд.
+                .trim();
+        return description == null || description.isBlank() ? null : description;
     }
 
     public ResponseEntity<HttpStatus> reloadTorData() {
@@ -129,6 +143,7 @@ public class ParseService {
                 .build());
         ents.forEach(item -> {
             item.setSheet(sh);
+            item.setDescription(cleanDescription(item.getDescription()));
             item.setOpt(Math.round(item.getOpt() + item.getOpt() * 0.05));
         });
         List<Item> saved = itemRepository.saveAll(ents);

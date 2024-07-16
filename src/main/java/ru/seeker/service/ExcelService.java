@@ -163,6 +163,17 @@ public class ExcelService {
                         }
                     }
 
+                    // описание
+                    if (headerMap.containsKey(ExcelTableHeaders.описание)) {
+                        ExcelTableHeaders head = ExcelTableHeaders.описание;
+                        try {
+                            itemDto.setDescription(parseService.cleanDescription(nextRow.getCell(headerMap.get(head),
+                                            Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue()));
+                        } catch (Exception e) {
+                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                        }
+                    }
+
                     // цена
                     if (headerMap.containsKey(ExcelTableHeaders.розн)) {
                         ExcelTableHeaders head = ExcelTableHeaders.розн;
@@ -383,6 +394,23 @@ public class ExcelService {
                             ) {
                                 log.warn("Неопознанный тип ячейки! {}",
                                         currentRowCells[headerMap.get(head)].getType());
+                            }
+                        } catch (Exception e) {
+                            log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
+                        }
+                    }
+
+                    // описание
+                    if (headerMap.containsKey(ExcelTableHeaders.описание)) {
+                        ExcelTableHeaders head = ExcelTableHeaders.описание;
+                        try {
+                            if (isKnownType(currentRowCells[headerMap.get(head)])) {
+                                itemDto.setDescription(
+                                        parseService.cleanDescription(currentRowCells[headerMap.get(head)].getContents()));
+                            } else if (!currentRowCells[headerMap.get(head)].getType().equals(jxl.CellType.EMPTY)
+                                    && !currentRowCells[headerMap.get(head)].isHidden()
+                            ) {
+                                log.warn("Неопознанный тип ячейки! {}", currentRowCells[headerMap.get(head)].getType());
                             }
                         } catch (Exception e) {
                             log.error("Fix it: {}", ExceptionUtils.getFullExceptionMessage(e));
