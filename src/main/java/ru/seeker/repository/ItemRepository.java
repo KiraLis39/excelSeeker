@@ -46,9 +46,9 @@ public interface ItemRepository extends JpaRepository<Item, UUID>, JpaSpecificat
                 SELECT DISTINCT ON(itm.title) sts.parsed_date date, itm.*
                 FROM public.items itm LEFT JOIN public.sheets sts ON itm.sheet = sts.uuid
                 ORDER BY itm.title, sts.parsed_date DESC) t
-            WHERE LOWER(title) like CONCAT('%', :#{#text}, '%')
-                OR LOWER(model) like CONCAT('%', :#{#text}, '%')
-                OR (sku IS NOT NULL AND LOWER(sku) like CONCAT('%', :#{#text}, '%'))""",
+            WHERE LOWER(title) SIMILAR TO CONCAT('%', :#{#text}, '%')
+                OR LOWER(model) SIMILAR TO CONCAT('%', :#{#text}, '%')
+                OR (sku IS NOT NULL AND LOWER(sku) SIMILAR TO CONCAT('%', :#{#text}, '%'))""",
             nativeQuery = true)
     Page<Item> findAllByText(@Param("text") String text, Pageable page);
 

@@ -49,7 +49,10 @@ public class ParseService {
     @Transactional(readOnly = true)
     public Page<WebAdaptDTO> findAllByText(String text, int count, int page) {
         log.info("Поиск в базе по строке '{}'...", text.toLowerCase());
-        Page<Item> found = itemRepository.findAllByText(text.toLowerCase(), Pageable.ofSize(count).withPage(page));
+        Page<Item> found = itemRepository.findAllByText(text
+                        .toLowerCase().trim()
+                        .replaceAll("\\s", "%"),
+                Pageable.ofSize(count).withPage(page));
         log.info("Найдено в базе совпадений по тексту '{}': {} шт.", text, found.getContent().size());
         return itemMapper.toWebAdaptDto(found);
     }

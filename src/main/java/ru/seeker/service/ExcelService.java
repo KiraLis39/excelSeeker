@@ -168,7 +168,7 @@ public class ExcelService {
                         ExcelTableHeaders head = ExcelTableHeaders.описание;
                         try {
                             itemDto.setDescription(parseService.cleanDescription(nextRow.getCell(headerMap.get(head),
-                                            Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue()));
+                                    Row.MissingCellPolicy.CREATE_NULL_AS_BLANK).getStringCellValue()));
                         } catch (Exception e) {
                             log.error("Fix it (004): {}", ExceptionUtils.getFullExceptionMessage(e));
                         }

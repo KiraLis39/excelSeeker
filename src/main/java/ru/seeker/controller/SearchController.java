@@ -12,10 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.seeker.dto.WebAdaptDTO;
+import ru.seeker.exceptions.GlobalServiceException;
+import ru.seeker.exceptions.root.ErrorMessages;
 import ru.seeker.service.AuthService;
 import ru.seeker.service.ParseService;
 
-import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
@@ -37,10 +38,10 @@ public class SearchController {
             @RequestParam(value = "page", defaultValue = "0", required = false) int page,
             @RequestParam(value = "count", defaultValue = "10", required = false) int count,
             HttpServletRequest request
-    ) throws AuthenticationException {
+    ) {
         if (authService.isAuthUser(request)) {
             return rowService.findAllByText(word, count, page);
         }
-        throw new AuthenticationException("Доступ ip %s запрещён!".formatted(request.getRemoteAddr()));
+        throw new GlobalServiceException(ErrorMessages.SESSION_TIMEOUT);
     }
 }
