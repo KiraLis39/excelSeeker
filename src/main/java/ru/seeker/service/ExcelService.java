@@ -87,6 +87,11 @@ public class ExcelService {
             for (org.apache.poi.ss.usermodel.Sheet sheet : workbook) {
                 log.info("Читаем страницу '{}'...", sheet.getSheetName());
 
+                if (sheet.getRow(0) == null) {
+                    log.warn("Страница {} не имеет строк?", sheet.getSheetName());
+                    continue;
+                }
+
                 // заголовок:
                 Map<ExcelTableHeaders, Integer> headerMap = new HashMap<>();
                 int column = 0;
@@ -312,6 +317,11 @@ public class ExcelService {
             int rowsCount = 0;
             final List<SheetDTO> sheets = new ArrayList<>();
             for (Sheet sheet : workbook.getSheets()) {
+                if (sheet.getRows() == 0) {
+                    log.warn("Страница {} не имеет строк?", sheet.getName());
+                    continue;
+                }
+
                 log.info("Читаем страницу '{}'...", sheet.getName());
 
                 // заголовок:
