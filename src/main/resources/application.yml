@@ -2,6 +2,7 @@ logging:
   level:
     root: INFO
     ru.seeker.service.ExcelService: INFO
+    ru.seeker.service.ParseService: INFO
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
 
 server:
@@ -39,7 +40,7 @@ spring:
 
   application:
     name: ExcelSeekerService
-    version: 1.0.3
+    version: 1.0.5
 
   profiles:
     active: dev

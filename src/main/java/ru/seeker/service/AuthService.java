@@ -90,6 +90,8 @@ public class AuthService {
         if (pOpt.isPresent() && oldPass.hashCode() == pOpt.get()) {
             log.info("Пользователь {} ({}) запрашивает смену пароля...", login, request.getRemoteAddr());
             passRepository.updatePasswordByLogin(login != null ? login : DEFAULT_USER_NAME, newPass.hashCode());
+            authHosts.clear();
+            putAuthUser(request.getRemoteHost());
             return isAuthUser(request);
         } else {
             throw new AuthenticationException("Неверный логин или пароль");

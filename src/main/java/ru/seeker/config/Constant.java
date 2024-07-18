@@ -12,7 +12,7 @@ public final class Constant {
     public static final String OLD_EXCEL_REPORT_EXTENSION = "xls";
     public static final String EXCEL_REPORT_EXTENSION = "xlsx";
     public static final String PDF_REPORT_EXTENSION = "pdf";
-    public static final short SESSION_LIVE_MINUTES = 180;
+    public static final short SESSION_LIVE_MINUTES = 1440;
 
     private Constant() {
     }

@@ -144,7 +144,15 @@ public class ParseService {
         ents.forEach(item -> {
             item.setSheet(sh);
             item.setDescription(cleanDescription(item.getDescription()));
+//            if (item.getTitle().contains("29142") || item.getSku().equals("1025048")) {
+//                log.debug("Цена Розн/Опт из источника: {} руб. / {} руб.\t({} арт.: {})",
+//                        item.getPrice(), item.getOpt(), item.getTitle(), item.getSku());
+//            }
             item.setOpt(Math.round(item.getOpt() + item.getOpt() * 0.05));
+//            if (item.getTitle().contains("29142") || item.getSku().equals("1025048")) {
+//                log.debug("Цена Розн/Опт в итоге: {} руб. / {} руб.\t\t\t({} арт.: {})\n",
+//                        item.getPrice(), item.getOpt(), item.getTitle(), item.getSku());
+//            }
         });
         List<Item> saved = itemRepository.saveAll(ents);
 
