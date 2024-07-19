@@ -48,11 +48,19 @@ public class ParseService {
 
     @Transactional(readOnly = true)
     public Page<WebAdaptDTO> findAllByText(String text, int count, int page) {
-        log.info("Поиск в базе по строке '{}'...", text.toLowerCase());
-        Page<Item> found = itemRepository.findAllByText(text
-                        .toLowerCase().trim()
-                        .replaceAll("\\s", "%"),
+        String[] tarr = text.toLowerCase().trim().split(" ");
+        String reversedText = tarr.length == 2 ? tarr[1] + "%" + tarr[0]
+                : tarr.length == 3
+                ? "%(" + tarr[2] + "|" + tarr[1] + ")%"
+                + "%(" + tarr[1] + "|" + tarr[2] + "|" + tarr[0] + ")%"
+                + "%(" + tarr[0] + "|" + tarr[1] + "|" + tarr[2] + ")%"
+                : text;
+
+        log.info("Поиск в базе по словам '{}'...", text.toLowerCase());
+        Page<Item> found = itemRepository.findAllByText(text.toLowerCase().trim()
+                        .replaceAll("\\s", "%"), reversedText,
                 Pageable.ofSize(count).withPage(page));
+
         log.info("Найдено в базе совпадений по тексту '{}': {} шт.", text, found.getContent().size());
         return itemMapper.toWebAdaptDto(found);
     }
@@ -90,6 +98,7 @@ public class ParseService {
         ents.forEach(item -> {
             item.setSheet(sh);
             item.setDescription(cleanDescription(item.getDescription()));
+            item.setOpt(item.getPrice() - item.getPrice() * 0.35);
         });
         List<Item> saved = itemRepository.saveAll(ents);
         sh.setItems(saved);
