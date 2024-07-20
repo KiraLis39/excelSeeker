@@ -33,10 +33,9 @@ import java.util.UUID;
 public class Sheet {
 
     @Id
-    @Builder.Default
     @Column(name = "uuid")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID uuid = UUID.randomUUID();
+    private UUID uuid;
 
     @Column(name = "doc_name")
     private String docName;

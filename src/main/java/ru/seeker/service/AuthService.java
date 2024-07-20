@@ -48,17 +48,14 @@ public class AuthService {
 
         boolean hasFound = false;
         if (!authHosts.isEmpty()) {
-            log.info("Проверка наличия пользователя {} в списке авторизованных...", host);
+            log.debug("Проверка наличия пользователя {} в списке авторизованных...", host);
             hasFound = authHosts.containsKey(host);
-            if (!hasFound) {
-                log.info("Пользователь {} не найден в списке авторизованных.", host);
-            }
-
-            // если 'тогда + SESSION_LIVE_MINUTES' уже прошли, относительно 'сейчас':
-            if (authHosts.get(host).plusMinutes(Constant.SESSION_LIVE_MINUTES).isBefore(ZonedDateTime.now())) {
+            if (hasFound && authHosts.get(host).plusMinutes(Constant.SESSION_LIVE_MINUTES).isBefore(ZonedDateTime.now())) {
                 hasFound = false;
                 removeAuthUser(host);
                 log.info("Session timeout for ({}).", request.getRemoteAddr());
+            } else {
+                log.info("Пользователь {} не найден в списке авторизованных.", host);
             }
         }
 

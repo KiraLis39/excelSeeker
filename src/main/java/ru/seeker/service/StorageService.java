@@ -33,9 +33,10 @@ public class StorageService {
         }
 
         UUID docUuid = sheetRepository.getDocUuidByUuid(sheetUuid);
-        log.warn("Удаление данных страницы '{}'...", sheetUuid);
+        String sheetName = sheetRepository.getSheetNameByUuid(sheetUuid);
+        log.warn("Удаление данных страницы '{}' {}...", sheetName, sheetUuid);
         sheetRepository.deleteAllByUuid(sheetUuid);
-        log.warn("Страница '{}' была удалёна из базы.", sheetUuid);
+        log.warn("Страница '{}' {} была удалёна из базы.", sheetName, sheetUuid);
 
 
         if (sheetRepository.countByDocUuid(docUuid) == 0) {
@@ -53,13 +54,15 @@ public class StorageService {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        log.warn("Удаление документа '{}'...", docUuid);
-        storyRepository.deleteByUuid(docUuid);
+        String docName = storyRepository.getDocNameUuid(docUuid);
 
-        log.warn("Удаление страниц документа '{}'...", docUuid);
+        log.warn("Удаление страниц документа '{}' ({})...", docName, docUuid);
         sheetRepository.deleteAllByDocUuid(docUuid);
 
-        log.warn("Документ '{}' был удалён из базы.", docUuid);
+        log.warn("Удаление документа '{}' ({})...", docName, docUuid);
+        storyRepository.deleteByUuid(docUuid);
+
+        log.warn("Документ '{}' ({}) был удалён из базы.", docName, docUuid);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

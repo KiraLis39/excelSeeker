@@ -27,10 +27,11 @@ public class AuthController {
     @Operation(description = "Проверка пароля", hidden = true)
     @GetMapping()
     public ResponseEntity<String> auth(
+            @RequestParam("login") String login,
             @RequestParam("password") String pass,
             HttpServletRequest request
     ) throws AuthenticationException {
-        if (authService.checkAuth(null, pass, request)) {
+        if (authService.checkAuth(login, pass, request)) {
             return ResponseEntity.accepted().build();
         } else {
             log.info("Безуспешный логин c {}", request.getRemoteAddr());

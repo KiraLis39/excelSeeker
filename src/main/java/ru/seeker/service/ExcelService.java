@@ -354,7 +354,9 @@ public class ExcelService {
                     ItemDTO itemDto = ItemDTO.builder().build();
                     jxl.Cell[] currentRowCells = sheet.getRow(i);
 
-                    if (currentRowCells.length < headerMap.size()) {
+                    List<jxl.Cell> nonEmpties = Arrays.stream(sheet.getRow(i))
+                            .filter(cell -> !cell.getType().equals(jxl.CellType.EMPTY)).toList();
+                    if (currentRowCells.length < headerMap.size() || nonEmpties.size() < headerMap.size()) {
                         continue; // какая-то левая, полу-пустая строка?
                     }
 

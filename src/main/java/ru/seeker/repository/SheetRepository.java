@@ -31,4 +31,7 @@ public interface SheetRepository extends JpaRepository<Sheet, UUID>, JpaSpecific
 
     @Modifying
     void deleteAllBySheetNameLike(String sheetName);
+
+    @Query(value = "select sh.sheetName from Sheet sh where sh.uuid = :sheetUuid")
+    String getSheetNameByUuid(UUID sheetUuid);
 }

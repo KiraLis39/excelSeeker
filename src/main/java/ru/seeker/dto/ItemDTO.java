@@ -64,10 +64,6 @@ public class ItemDTO {
 
     private String excerpt;
 
-//    @Builder.Default
-//    @Schema(description = "Изображения")
-//    private Set<String> images = new HashSet<>();
-
     @JsonIgnore
     private SheetDTO sheet;
 

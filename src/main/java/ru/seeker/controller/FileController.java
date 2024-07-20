@@ -79,16 +79,30 @@ public class FileController {
     @ApiResponse(responseCode = "200", description = "Файл успешно удалён", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
     @PostMapping("/delete/document")
-    public ResponseEntity<HttpStatus> deleteFile(@RequestParam UUID docUuid) {
-        return storageService.deleteAllDataByDocUuid(docUuid);
+    public ResponseEntity<HttpStatus> deleteFile(
+            @RequestParam UUID docUuid,
+            HttpServletRequest request
+    ) {
+        if (authService.isAuthUser(request)) {
+            log.warn("Пользователь {} инициирует удаление документа {}...", request.getRemoteAddr(), docUuid);
+            return storageService.deleteAllDataByDocUuid(docUuid);
+        }
+        throw new GlobalServiceException(ErrorMessages.SESSION_TIMEOUT);
     }
 
     @Operation(summary = "Удаление страниц", description = "Удаление страниц")
     @ApiResponse(responseCode = "200", description = "Страница успешно удалена", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
     @PostMapping("/delete/sheet")
-    public ResponseEntity<HttpStatus> deleteSheet(@RequestParam UUID sheetUuid) {
-        return storageService.deleteAllDataBySheetUuid(sheetUuid);
+    public ResponseEntity<HttpStatus> deleteSheet(
+            @RequestParam UUID sheetUuid,
+            HttpServletRequest request
+    ) {
+        if (authService.isAuthUser(request)) {
+            log.warn("Пользователь {} инициирует удаление страницы {}...", request.getRemoteAddr(), sheetUuid);
+            return storageService.deleteAllDataBySheetUuid(sheetUuid);
+        }
+        throw new GlobalServiceException(ErrorMessages.SESSION_TIMEOUT);
     }
 
     @Operation(summary = "Список загруженных документов", description = "Получить список загруженных ранее документов")

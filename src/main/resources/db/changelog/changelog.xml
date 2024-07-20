@@ -17,5 +17,6 @@
 
     <include file="/db/changelog/initial/00_initial_01.xml"/>
     <include file="/db/changelog/changes/13.07.24_add_password_table.xml"/>
+    <include file="/db/changelog/changes/20.07.24_add_admins_master_password.xml"/>
 
 </databaseChangeLog>
