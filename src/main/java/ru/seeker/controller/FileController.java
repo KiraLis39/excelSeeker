@@ -83,7 +83,7 @@ public class FileController {
             @RequestParam UUID docUuid,
             HttpServletRequest request
     ) {
-        if (authService.isAuthUser(request)) {
+        if (authService.isAuthAdmin(request)) {
             log.warn("Пользователь {} инициирует удаление документа {}...", request.getRemoteAddr(), docUuid);
             return storageService.deleteAllDataByDocUuid(docUuid);
         }
@@ -98,7 +98,7 @@ public class FileController {
             @RequestParam UUID sheetUuid,
             HttpServletRequest request
     ) {
-        if (authService.isAuthUser(request)) {
+        if (authService.isAuthAdmin(request)) {
             log.warn("Пользователь {} инициирует удаление страницы {}...", request.getRemoteAddr(), sheetUuid);
             return storageService.deleteAllDataBySheetUuid(sheetUuid);
         }

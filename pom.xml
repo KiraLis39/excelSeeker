@@ -6,7 +6,7 @@
 
     <groupId>ru.seeker</groupId>
     <artifactId>seeker</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <packaging>jar</packaging>
     <name>seeker-service</name>
     <description>Excel seeker service on Spring Boot</description>

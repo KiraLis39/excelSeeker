@@ -24,23 +24,37 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
     private final Map<String, ZonedDateTime> authHosts = new HashMap<>(32);
+    private final Map<String, ZonedDateTime> authAdmins = new HashMap<>(3);
     private final ApplicationProperties props;
     private final PassRepository passRepository;
     private final String DEFAULT_USER_NAME = "Default";
+    private final String ADMIN_MASTER_LOGIN = "Admin";
 
     public boolean checkAuth(String login, String password, HttpServletRequest request) throws AuthenticationException {
         Optional<Integer> pOpt = passRepository.findPassHashByLogin(login != null ? login : DEFAULT_USER_NAME);
         if (pOpt.isPresent() && password.hashCode() == pOpt.get()) {
             log.info("Входящий логин c {}", request.getRemoteAddr());
-            putAuthUser(request.getRemoteHost());
+            if (login != null && login.equals(ADMIN_MASTER_LOGIN)) {
+                putAuthAdmin(request.getRemoteHost());
+            } else {
+                putAuthUser(request.getRemoteHost());
+            }
             return isAuthUser(request);
         } else {
             throw new AuthenticationException("Неверный логин или пароль");
         }
     }
 
+    private void putAuthAdmin(String host) {
+        authAdmins.put(host, ZonedDateTime.now());
+    }
+
     public void putAuthUser(String host) {
         authHosts.put(host, ZonedDateTime.now());
+    }
+
+    public boolean isAuthAdmin(HttpServletRequest request) {
+        return authAdmins.containsKey(request.getRemoteHost());
     }
 
     public boolean isAuthUser(HttpServletRequest request) {
